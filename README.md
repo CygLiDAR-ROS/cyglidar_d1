@@ -10,7 +10,7 @@ For more details in the 2D/3D ToF LiDAR, please visit http://www.cygbot.com
 
 ### Set-Up
 ```bash
-roslaunch cld1a0 cld1a0.launch
+roslaunch cld1a0_pcl cyglidar.launch
 ```
 
 ## Parameters
