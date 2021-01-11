@@ -14,7 +14,7 @@ roslaunch cld1a0_pcl cyglidar.launch
 ```
 
 ## Parameters
-The version numbers of datasets are respectively 0(2D) and 1(3D) as below:
+In cyglidar.launch, the version number of datasets can be switched 0(2D) and 1(3D) as below:
 
 2D)
 <h1 align="left">
