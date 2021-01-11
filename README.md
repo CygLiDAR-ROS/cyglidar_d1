@@ -14,7 +14,7 @@ roslaunch cld1a0_pcl cyglidar.launch
 ```
 
 ## Parameters
-The data types of 2D and 3D are 0 and 1 respectively as below:
+The version numbers of datasets are respectively 0(2D) and 1(3D) as below:
 
 2D)
 <h1 align="left">
