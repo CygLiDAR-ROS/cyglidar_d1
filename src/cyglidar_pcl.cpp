@@ -65,7 +65,11 @@ namespace cyglidar_pcl_driver
             }
         }
 
-        return false;
+        originalBuffer[0] = 0x00;
+        originalBuffer[1] = 0x01;
+        originalBuffer[2] = 0x02;
+        
+        return originalBuffer;
     }
 
     void cyglidar_pcl::packet(int version_num)
