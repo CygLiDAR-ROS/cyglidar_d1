@@ -263,16 +263,6 @@ uint8_t cloudScatter_3D()
     }
 }
 
-std::string version_input;
-std::string getVersion()
-{
-    std::string input;
-    std::cout << ">>>>> PLEASE ENTER THE TYPE OF DATA YOU WANT TO RECEIVE FROM CYGLIDAR: ";
-    std::getline(std::cin, version_input);
-
-    return version_input;
-}
-
 void running()
 {
     ros::NodeHandle nh;
@@ -283,7 +273,8 @@ void running()
     std::string frame_id;
 
     priv_nh.param("port", port, std::string("/dev/ttyUSB0"));
-    priv_nh.param("baud_rate", baud_rate, 3000000); 
+    priv_nh.param("baud_rate", baud_rate, 3000000);
+    priv_nh.param("version_num", version_num, 0);
     priv_nh.param("frame_id", frame_id, std::string("laser_link"));
 
     ROS_INFO("READY");
@@ -333,8 +324,6 @@ void running()
     try
     {
         cyglidar_pcl_driver::cyglidar_pcl laser(port, baud_rate, io);
-
-        version_num = std::stoi(getVersion());
         laser.packet(version_num);
 
         while (ros::ok())
