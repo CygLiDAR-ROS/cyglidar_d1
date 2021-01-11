@@ -2,6 +2,7 @@
     <node pkg="cld1a0_pcl" type="cyglidar_pcl_publisher" name="line_laser" output="screen">
     <param name="port" value="/dev/ttyUSB0"/>
     <param name="baud_rate" value="3000000"/>
+    <param name="version_num" value="0"/>
     <param name="frame_id" value="laser_link"/>
     <param name="fixed_frame" value="/map"/>
     </node>
