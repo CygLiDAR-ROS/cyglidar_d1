@@ -340,7 +340,7 @@ void running()
         while (ros::ok())
         {
             uint8_t* result = laser.poll(version_num);
-            if (result != false)
+            if (result[0] == 0x5A && result[1] == 0x77 && result[2] == 0xFF)
             {
                 switch (result[5])
                 {
