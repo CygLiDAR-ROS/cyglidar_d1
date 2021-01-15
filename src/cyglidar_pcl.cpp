@@ -48,8 +48,7 @@ namespace cyglidar_pcl_driver
 
     uint8_t result = 0;
     uint8_t *originalBuffer = new uint8_t[DATABUFFER_SIZE_3D];
-    uint8_t *originalBuffer_01 = new uint8_t[DATABUFFER_SIZE_3D];
-    uint8_t *originalBuffer_02 = new uint8_t[DATABUFFER_SIZE_3D];
+    uint8_t *originalBuffer_Failed = new uint8_t[3];
     boost::array<uint8_t, 1> raw_bytes;
 
     uint8_t* cyglidar_pcl::poll(int version_num)
@@ -65,11 +64,11 @@ namespace cyglidar_pcl_driver
             }
         }
 
-        originalBuffer[0] = 0x00;
-        originalBuffer[1] = 0x01;
-        originalBuffer[2] = 0x02;
+        originalBuffer_Failed[0] = 0x00;
+        originalBuffer_Failed[1] = 0x01;
+        originalBuffer_Failed[2] = 0x02;
         
-        return originalBuffer;
+        return originalBuffer_Failed;
     }
 
     void cyglidar_pcl::packet(int version_num)
