@@ -35,12 +35,13 @@ In cyglidar.launch, the version number of datasets can be switched 0(2D) and 1(3
   <img src="screenshots/param_3d.png" width="600"/>
 </h1>
 
-### Fixed Frame
+In Rviz, the fixed frame and the topic for Point Cloud must be updated.
 ```bash
+// Fixed Frame
 /laser_link
 ```
 
-### Topic
 ```bash
+// Topic
 /scan
 ```
