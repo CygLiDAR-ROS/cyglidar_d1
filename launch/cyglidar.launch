@@ -6,4 +6,6 @@
     <param name="frame_id" value="laser_link"/>
     <param name="fixed_frame" value="/map"/>
     </node>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find cld1a0_pcl)/rviz/cyglidar_config.rviz"/>
 </launch>
