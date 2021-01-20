@@ -1,15 +1,7 @@
 #ifndef CYGLIDAR_H
 #define CYGLIDAR_H
 
-#include <sensor_msgs/PointCloud2.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
 #include <boost/asio.hpp>
-#include <boost/array.hpp>
 #include <string>
 
 namespace cyglidar_pcl_driver {
