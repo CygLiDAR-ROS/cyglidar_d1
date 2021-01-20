@@ -23,8 +23,7 @@ roslaunch cld1a0_pcl cyglidar.launch
 ```
 
 ## Parameters
-#### cyglidar.launch
-The version number of datasets can be switched 0(2D) and 1(3D) as below:
+In cyglidar.launch, the version number of datasets can be switched 0(2D) and 1(3D) as below:
 
 2D)
 <h1 align="left">
@@ -36,8 +35,7 @@ The version number of datasets can be switched 0(2D) and 1(3D) as below:
   <img src="screenshots/param_3d.png" width="600"/>
 </h1>
 
-#### Rviz
-The fixed frame and the topic for Point Cloud must be updated.
+In Rviz, the fixed frame and the topic for Point Cloud must be updated.
 
 ```bash
 /laser_link
