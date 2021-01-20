@@ -1,14 +1,14 @@
 #!/bin/bash
 
 echo " "
-echo "remap the device serial port(ttyUSBX) to  cyglidar"
-echo "usb connection as /dev/cyglidar, check it using the command: ls -l /dev|grep ttyUSB"
-echo "start copy cyglidar.rules to  /etc/udev/rules.d/"
+echo "Remap the device serial port(ttyUSBX) to  cyglidar"
+echo "Check if USB is identified as /dev/cyglidar using the command: ls -l /dev|grep ttyUSB"
+echo "Start copying cyglidar.rules to  /etc/udev/rules.d/"
 echo "`rospack find cld1a0_pcl`/scripts/cyglidar.rules"
 sudo cp `rospack find cld1a0_pcl`/scripts/cyglidar.rules  /etc/udev/rules.d
 echo " "
-echo "Restarting udev"
+echo "Restart udev"
 echo ""
 sudo service udev reload
 sudo service udev restart
-echo "finish "
+echo "Created"
