@@ -10,9 +10,9 @@ class cyglidar_pcl
   public:
 
       /**
-        * @brief Constructs a new CygLiDAR attached to the given serial port
+        * @brief Construct CygLiDAR attached to the given serial port
         * @param port The string for the serial port device to attempt to connect to, e.g. "/dev/ttyUSB0"
-        * @param baud_rate The baud rate to open the serial port at.
+        * @param baud_rate The baud rate to open the serial port at
         * @param io Boost ASIO IO Service to use when creating the serial port object
         */
       cyglidar_pcl(const std::string& port, uint32_t baud_rate, boost::asio::io_service& io);
@@ -23,13 +23,13 @@ class cyglidar_pcl
       ~cyglidar_pcl();
 
       /**
-        * @brief Poll the laser to get a new scan. Blocks until a complete new scan is received or close is called.
+        * @brief Poll the laser to get a new scan. Block until a complete new scan is received or close is called.
         * @param scan 
         */
       uint8_t* poll(int version_num); 
 
       /**
-        * @brief Send packets
+        * @brief Send a packet
         */
       void packet(int version_num);
 
@@ -38,11 +38,11 @@ class cyglidar_pcl
         */
       void close();
   private:
-      std::string port_; ///< @brief The serial port the driver is attached to
+      std::string port_; ///< @brief The serial port which the driver belongs to
       uint32_t baud_rate_; ///< @brief The baud rate for the serial connection
 
       bool shutting_down_; ///< @brief Flag for whether the driver is supposed to be shutting down or not
-      boost::asio::serial_port serial_; ///< @brief Actual serial port object for reading/writing to the n301n lidar Scanner
+      boost::asio::serial_port serial_; ///< @brief Actual serial port object for reading/writing to the lidar Scanner
   };
 }
 
