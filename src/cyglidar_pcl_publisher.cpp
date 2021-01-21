@@ -1,15 +1,11 @@
 #include <ros/ros.h>
-#include <tf/transform_listener.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+#include <cyglidar_pcl.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl/filters/voxel_grid.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
-#include <boost/asio.hpp>
+#include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/UInt16.h>
-#include <cyglidar_pcl.h>
+#include <boost/asio.hpp>
 #include <cmath>
 #include <thread>
 
@@ -33,8 +29,11 @@
 
 #define DIVISOR                 0.001
 #define FOCAL_LENGTH            40.5
+#define HORIZONTAL_ANGLE        120
+#define VERTITAL_ANGLE          65
 
 const float RADIAN = MATH_PI / HALF_ANGLE;
+const float DEGREE = HALF_ANGLE / MATH_PI;
 
 typedef pcl::PointCloud<pcl::PointXYZRGBA> PointXYZRGBA;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D;
@@ -43,7 +42,6 @@ tf::TransformListener *tf_listener;
 
 ros::Publisher pub;
 int version_num;
-bool version_changed;
 
 uint8_t *cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
 float *cloudSetBuffer = new float[DATASET_SIZE_3D];
@@ -54,8 +52,7 @@ uint8_t* bufferPtr_2D;
 uint8_t* bufferPtr01;
 uint8_t* bufferPtr02;
 
-uint8_t FIRST, SECOND, THIRD;
-uint16_t LSB, MSB;
+uint8_t FIRST, SECOND, THIRD, LSB, MSB;
 
 float centerX, centerY, width, height;
 float actualX = 0.0, actualY = 0.0;
@@ -177,9 +174,9 @@ uint8_t cloudScatter_2D()
 }
 
 int distanceCnt_3D, index_3D;
-float tempX_3D, tempY_3D;
-float yRecovery;
-float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, focalRatio_3D;
+float tempX_3D, tempY_3D, tempD_3D, centerX_3D, centerY_3D;
+float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, focalRatio_3D, tanA1_3D, aRatio_3D;
+float verticalA, horizontalA, verticalA_Single, horizontalA_Half, originalA_H, originalA_V, differenceA_H, differenceA_V;
 uint32_t rgb_3D;
 uint8_t cloudScatter_3D()
 {
@@ -211,6 +208,15 @@ uint8_t cloudScatter_3D()
             cloudSetBuffer[distanceCnt_3D++] = data2;
         }
 
+        horizontalA_Half = (float)HORIZONTAL_ANGLE / 2;
+        verticalA_Single = (float)VERTITAL_ANGLE / (width / 2);
+        originalA_H = (atan((width / 2) / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
+        originalA_V = (atan((height / 2) / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
+        differenceA_H = (horizontalA_Half / originalA_H);
+        differenceA_V = ((VERTITAL_ANGLE / 2) / originalA_V);
+
+        centerX_3D = (width / 2);
+        centerY_3D = (height / 2);
         index_3D = 0;
         for (int yy = 0; yy < height; yy++)
         {
@@ -218,25 +224,32 @@ uint8_t cloudScatter_3D()
             {
                 index_3D = (xx + (yy * width));
 
-                x_3D = (xx - (width / 2));
-                y_3D = ((height - yy) - (height / 2));
-
-                h_3D = sqrt(pow(x_3D, 2) + pow(y_3D, 2));
-                fh_3D = sqrt(pow(h_3D, 2) + pow(FOCAL_LENGTH, 2));
-                dRatio_3D = cloudSetBuffer[index_3D] / fh_3D;
-
-                actualDistance = (FOCAL_LENGTH * dRatio_3D);
-                focalRatio_3D = actualDistance / FOCAL_LENGTH;
-
-                actualX = (x_3D * focalRatio_3D);
-                actualY = (y_3D * focalRatio_3D);
-
                 if (cloudSetBuffer[index_3D] < (float)BASE_DEPTH_3D)
                 {
+                    x_3D = abs(centerX_3D - xx);
+                    y_3D = abs(centerY_3D - yy);
+                    
+                    tanA1_3D = (x_3D / y_3D);
+                    h_3D = (x_3D == 0 ? 0 : (x_3D / sin(atan(tanA1_3D))));
+
+                    aRatio_3D = (h_3D / centerX_3D);
+                    horizontalA = (horizontalA_Half * aRatio_3D);
+                    verticalA = (verticalA_Single * y_3D);
+
+                    tempD_3D = (FOCAL_LENGTH / cos(horizontalA * RADIAN));
+
+                    dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
+                    actualDistance = (dRatio_3D * FOCAL_LENGTH);
+
+                    actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
+                    actualY = ((height - yy) - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
+                    
+                    // Determine a cloud color based on the distance
                     rgb_3D = colorArray[(int)actualDistance % colorArray.size()];
                     scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
                     scan_3D.get()->points[index_3D].a = 255;
 
+                    // Rotate the axis of clouds to the right
                     tempX_3D = actualX;
                     tempY_3D = actualDistance;
                     actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
@@ -244,16 +257,16 @@ uint8_t cloudScatter_3D()
                     
                     scan_3D.get()->points[index_3D].x = actualX * DIVISOR;
                     scan_3D.get()->points[index_3D].y = actualDistance * DIVISOR;
-                    scan_3D.get()->points[index_3D].z = (actualY + 180) * DIVISOR;
+                    scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
                 }
                 else
-                {
+                {/*
                     scan_3D.get()->points[index_3D].x = 0.0;
                     scan_3D.get()->points[index_3D].y = 0.0;
                     scan_3D.get()->points[index_3D].z = 0.0;
                     scan_3D.get()->points[index_3D].r = 0;
                     scan_3D.get()->points[index_3D].g = 0;
-                    scan_3D.get()->points[index_3D].b = 0;
+                    scan_3D.get()->points[index_3D].b = 0;*/
                     scan_3D.get()->points[index_3D].a = 0;
                 }
             }
@@ -276,8 +289,6 @@ void running()
     priv_nh.param("baud_rate", baud_rate, 3000000);
     priv_nh.param("version_num", version_num, 0);
     priv_nh.param("frame_id", frame_id, std::string("laser_link"));
-
-    ROS_INFO("READY");
 
     colorBuffer();
 
@@ -313,13 +324,10 @@ void running()
     }
 
     actualDistance = 0.0;
-
     length = 0.0;
-
-    drawing = false;
     currentBuffer = 0x00;
+    drawing = false;
 
-    version_changed = false;
     boost::asio::io_service io;
     try
     {
@@ -375,11 +383,8 @@ int main(int argc, char **argv)
     // Initialize ROS
     ros::init(argc, argv, "line_laser");
 
-    //std::thread first(getVersion);
-    std::thread second(running);
-
-    //first.join();
-    second.join();
+    std::thread first(running);
+    first.join();
 
     return 0;
 }
