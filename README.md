@@ -36,12 +36,14 @@ roslaunch cld1a0_pcl cyglidar.launch
 ```
 
 ### Note
-In Rviz, the fixed frame and the topic for Point Cloud must be updated.
+In Rviz, the fixed frame and the topic for Point Cloud are respectively equivalent to the following:
 
+##### Fixed Frame
 ```bash
 /laser_link
 ```
 
+##### Topic
 ```bash
 /scan
 ```
