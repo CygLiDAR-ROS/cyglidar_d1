@@ -1,14 +1,7 @@
 #include <cyglidar_pcl.h>
+#include <CygbotParser.h>
 #include <iostream>
 #include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
-#include <CygbotParser.h>
 
 #define START_COUNT            0
 #define DATABUFFER_SIZE_2D     249
@@ -16,12 +9,9 @@
 
 static boost::array<uint8_t, 8> PACKET_START_2D = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x01, 0x00, 0x03 };
 static boost::array<uint8_t, 8> PACKET_START_3D = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x08, 0x00, 0x0A };
-static boost::array<uint8_t, 8> PACKET_START_DUAL = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x07, 0x00, 0x05 };
 static boost::array<uint8_t, 8> PACKET_STOP = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x02, 0x00, 0x00 };
 
 static boost::array<uint8_t, 8> PACKET_INTEGRATION_ON = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x0D, 0x01, 0x0E };
-static boost::array<uint8_t, 8> PACKET_INTEGRATION_OFF = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x0D, 0x00, 0x0F };
-static boost::array<uint8_t, 8> PACKET_INTEGRATION_TIME = { 0x5A, 0x77, 0xFF, 0x03, 0x00, 0x0C, 0x00, 0x00 };
 
 using namespace std;
 namespace cyglidar_pcl_driver 
@@ -82,9 +72,6 @@ namespace cyglidar_pcl_driver
                 boost::asio::write(serial_, boost::asio::buffer(PACKET_START_3D));
                 boost::asio::write(serial_, boost::asio::buffer(PACKET_INTEGRATION_ON));
                 break;
-            case 2: // Dual
-                boost::asio::write(serial_, boost::asio::buffer(PACKET_START_DUAL));
-                break;
         }
         
         ROS_INFO("PACKET SENT (START, %d)", version_num);
@@ -99,4 +86,3 @@ namespace cyglidar_pcl_driver
     }
 
 }
-
