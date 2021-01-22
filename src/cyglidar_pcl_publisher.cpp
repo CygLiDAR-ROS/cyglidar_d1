@@ -54,7 +54,7 @@ uint8_t* bufferPtr02;
 
 uint8_t FIRST, SECOND, THIRD, LSB, MSB;
 
-float centerX, centerY, width, height;
+float centerX_3D, centerY_3D, width, height;
 float actualX = 0.0, actualY = 0.0;
 
 float angleRadian = RADIAN * -RIGHT_ANGLE;
@@ -174,7 +174,7 @@ uint8_t cloudScatter_2D()
 }
 
 int distanceCnt_3D, index_3D;
-float tempX_3D, tempY_3D, tempD_3D, centerX_3D, centerY_3D;
+float tempX_3D, tempY_3D, tempD_3D;
 float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, focalRatio_3D, tanA1_3D, aRatio_3D;
 float verticalA, horizontalA, verticalA_Single, horizontalA_Half, originalA_H, originalA_V, differenceA_H, differenceA_V;
 uint32_t rgb_3D;
@@ -209,14 +209,12 @@ uint8_t cloudScatter_3D()
         }
 
         horizontalA_Half = (float)HORIZONTAL_ANGLE / 2;
-        verticalA_Single = (float)VERTITAL_ANGLE / (width / 2);
-        originalA_H = (atan((width / 2) / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
-        originalA_V = (atan((height / 2) / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
+        verticalA_Single = (float)VERTITAL_ANGLE / centerX_3D;
+        originalA_H = (atan(centerX_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
+        originalA_V = (atan(centerY_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
         differenceA_H = (horizontalA_Half / originalA_H);
         differenceA_V = ((VERTITAL_ANGLE / 2) / originalA_V);
-
-        centerX_3D = (width / 2);
-        centerY_3D = (height / 2);
+        
         index_3D = 0;
         for (int yy = 0; yy < height; yy++)
         {
@@ -314,8 +312,9 @@ void running()
 
     width = (float)(scan_3D.get()->width);
     height = (float)(scan_3D.get()->height);
-    centerX = width / 2.0;
-    centerY = height / 2.0;
+    
+    centerX_3D = (width / 2);
+    centerY_3D = (height / 2);
 
     scan_3D.get()->points.resize(DATABUFFER_SIZE_3D);
     for (int point = 0; point < DATABUFFER_SIZE_3D; point++)
