@@ -258,13 +258,7 @@ uint8_t cloudScatter_3D()
                     scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
                 }
                 else
-                {/*
-                    scan_3D.get()->points[index_3D].x = 0.0;
-                    scan_3D.get()->points[index_3D].y = 0.0;
-                    scan_3D.get()->points[index_3D].z = 0.0;
-                    scan_3D.get()->points[index_3D].r = 0;
-                    scan_3D.get()->points[index_3D].g = 0;
-                    scan_3D.get()->points[index_3D].b = 0;*/
+                {
                     scan_3D.get()->points[index_3D].a = 0;
                 }
             }
