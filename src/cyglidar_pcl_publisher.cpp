@@ -127,8 +127,8 @@ uint8_t cloudScatter_2D()
 
         for (int dataLength = 0; dataLength < (DATABUFFER_SIZE_2D - PAYLOAD_SIZE) - 1; dataLength+=2)
         {
-            LSB = cloudBuffer_2D[dataLength];
-            MSB = cloudBuffer_2D[dataLength + 1];
+            MSB = cloudBuffer_2D[dataLength];
+            LSB = cloudBuffer_2D[dataLength + 1];
 
             data1 = (float)((MSB << 8) | LSB);
 
