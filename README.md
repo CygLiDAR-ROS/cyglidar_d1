@@ -1,6 +1,6 @@
-# cld1a0_pcl
-cld1a0_pcl is a ROS package, which is designed to visualize 2D/3D distance dataset in real-time.
-For more details in the 2D/3D ToF LiDAR, please visit http://www.cygbot.com
+# cyglidar_d1
+cyglidar_d1 is a ROS package, which is designed to visualize 2D/3D distance dataset in real-time.
+For more details in CygLiDAR, please visit http://www.cygbot.com
 
 ## How to use this package
 
@@ -11,7 +11,7 @@ For more details in the 2D/3D ToF LiDAR, please visit http://www.cygbot.com
 ### Set-Up
 Install the udev rule
 ```bash
-roscd cld1a0_pcl
+roscd cyglidar_d1
 cd scripts
 chmod +x create_udev_rules.sh
 ./create_udev_rules.sh
@@ -32,7 +32,7 @@ In cyglidar.launch, the version number of datasets can be switched 0(2D) and 1(3
 
 ### Run
 ```bash
-roslaunch cld1a0_pcl cyglidar.launch
+roslaunch cyglidar_d1 cyglidar.launch
 ```
 
 ### Note
