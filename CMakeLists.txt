@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-set(PROJECTNAME "cld1a0_pcl")
+set(PROJECTNAME "cyglidar_d1")
 project(${PROJECTNAME} CXX C)
 
 
