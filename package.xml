@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>cld1a0_pcl</name>
+  <name>cyglidar_d1</name>
   <version>0.1.0</version>
   <description>cyglidar_pcl_driver</description>
 
