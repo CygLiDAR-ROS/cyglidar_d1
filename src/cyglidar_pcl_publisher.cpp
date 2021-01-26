@@ -175,7 +175,7 @@ uint8_t cloudScatter_2D()
 
 int distanceCnt_3D, index_3D;
 float tempX_3D, tempY_3D, tempD_3D;
-float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, focalRatio_3D, tanA1_3D, aRatio_3D;
+float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, aRatio_3D, focalRatio_3D, tanA1_3D, tanA2_3D;
 float verticalA, horizontalA, verticalA_Single, horizontalA_Half, originalA_H, originalA_V, differenceA_H, differenceA_V;
 uint32_t rgb_3D;
 uint8_t cloudScatter_3D()
@@ -224,23 +224,21 @@ uint8_t cloudScatter_3D()
 
                 if (cloudSetBuffer[index_3D] < (float)BASE_DEPTH_3D)
                 {
-                    x_3D = abs(centerX_3D - xx);
-                    y_3D = abs(centerY_3D - yy);
+                    x_3D = abs(xx - centerX_3D);
+                    y_3D = abs(yy - centerY_3D);
                     
-                    tanA1_3D = (x_3D / y_3D);
-                    h_3D = (x_3D == 0 ? 0 : (x_3D / sin(atan(tanA1_3D))));
+                    tanA1_3D = y_3D / x_3D;
+                    h_3D = (y_3D == 0 ? x_3D : (y_3D / sin(atan(tanA1_3D))));
 
-                    aRatio_3D = (h_3D / centerX_3D);
-                    horizontalA = (horizontalA_Half * aRatio_3D);
-                    verticalA = (verticalA_Single * y_3D);
+                    tanA2_3D = FOCAL_LENGTH / h_3D;
+                    tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
 
-                    tempD_3D = (FOCAL_LENGTH / cos(horizontalA * RADIAN));
 
                     dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
-                    actualDistance = (dRatio_3D * FOCAL_LENGTH);
+                    actualDistance = (FOCAL_LENGTH * dRatio_3D);
 
                     actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
-                    actualY = ((height - yy) - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
+                    actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
                     
                     // Determine a cloud color based on the distance
                     rgb_3D = colorArray[(int)actualDistance % colorArray.size()];
