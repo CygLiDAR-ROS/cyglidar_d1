@@ -233,7 +233,6 @@ uint8_t cloudScatter_3D()
                     tanA2_3D = FOCAL_LENGTH / h_3D;
                     tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
 
-
                     dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
                     actualDistance = (FOCAL_LENGTH * dRatio_3D);
 
