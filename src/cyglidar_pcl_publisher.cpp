@@ -68,15 +68,15 @@ uint8_t r_setup, g_setup, b_setup;
 void colorBuffer()
 {
     int colors = 0;
-    r_setup = 255;
+    r_setup = 254;
     g_setup = 0;
     b_setup = 0;
 
-    for (int colors = 0; colors < 2; colors++)
+    for (int colorSet = 0; colorSet < 2; colorSet++)
     {
         for (int i = 0; i < 3; i++)
         {
-            for (int colorCnt = 0; colorCnt < COLOR_MAX + 1; colorCnt++)
+            for (int colorCnt = 0; colorCnt < COLOR_MAX; colorCnt++)
             {
                 switch (colors)
                 {
@@ -100,7 +100,7 @@ void colorBuffer()
                 rgb_setup = ((uint32_t)r_setup << 16 | (uint32_t)g_setup << 8 | (uint32_t)b_setup);
                 colorArray.push_back(rgb_setup);
 
-                if (colorCnt == COLOR_MAX)
+                if (colorCnt == COLOR_MAX - 1)
                 {
                     colors++;
                 }
