@@ -1,5 +1,4 @@
 #include <cyglidar_pcl.h>
-#include <CygbotParser.h>
 #include <iostream>
 #include <ros/ros.h>
 
@@ -9,15 +8,18 @@
 
 static boost::array<uint8_t, 8> PACKET_START_2D = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x01, 0x00, 0x03 };
 static boost::array<uint8_t, 8> PACKET_START_3D = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x08, 0x00, 0x0A };
+static boost::array<uint8_t, 8> PACKET_START_DUAL = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x07, 0x00, 0x05 };
 static boost::array<uint8_t, 8> PACKET_STOP = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x02, 0x00, 0x00 };
 
-static boost::array<uint8_t, 8> PACKET_INTEGRATION_ON = { 0x5A, 0x77, 0xFF, 0x02, 0x00, 0x0D, 0x01, 0x0E };
+static boost::array<uint8_t, 9> PACKET_INTEGRATION_TIME = { 0x5A, 0x77, 0xFF, 0x03, 0x00, 0x0C, 0x00, 0x00, 0x00 };
+
+//uint8_t raw_bytes[DATABUFFER_SIZE_3D + 2]; // *raw_bytes = new uint8_t[DATABUFFER_SIZE_3D + 2];
 
 using namespace std;
 namespace cyglidar_pcl_driver 
 {
     cyglidar_pcl::cyglidar_pcl(const std::string& port, uint32_t baud_rate, boost::asio::io_service& io)
-    :port_(port), baud_rate_(baud_rate), shutting_down_(false), serial_(io, port_)
+    :port_(port), baud_rate_(baud_rate), serial_(io, port_)
     {
         try
         {
@@ -36,29 +38,34 @@ namespace cyglidar_pcl_driver
         serial_.close();
     }
 
-    uint8_t result = 0;
-    uint8_t *originalBuffer = new uint8_t[DATABUFFER_SIZE_3D];
-    uint8_t *originalBuffer_Failed = new uint8_t[3];
-    boost::array<uint8_t, 1> raw_bytes;
+	boost::system::error_code errorCode;
+	int dataCnt = 0;
+
+	//uint8_t *raw_bytes = new uint8_t[DATABUFFER_SIZE_3D + 2];
+	boost::array<uint8_t, DATABUFFER_SIZE_3D + 2> raw_bytes;
 
     uint8_t* cyglidar_pcl::poll(int version_num)
     {
-        while (!shutting_down_)
-        {
-            boost::asio::read(serial_, boost::asio::buffer(&raw_bytes[START_COUNT], 1));
+        //dataCnt = serial_.read_some(boost::asio::buffer(raw_bytes, DATABUFFER_SIZE_3D + 2), errorCode);
+        dataCnt = boost::asio::read(serial_, boost::asio::buffer(raw_bytes), boost::asio::transfer_at_least(1), errorCode);
 
-            result = CygParser(originalBuffer, raw_bytes[START_COUNT]);
-            if (result == 0x01)
-            {
-                return originalBuffer;
-            }
-        }
+		if (errorCode)
+		{
+			raw_bytes[DATABUFFER_SIZE_3D] = 0x00; // MSB
+			raw_bytes[DATABUFFER_SIZE_3D + 1] = 0x00; // LSB
+		}
+		else
+		{
+			raw_bytes[DATABUFFER_SIZE_3D] = (dataCnt) >> 8; // MSB
+			raw_bytes[DATABUFFER_SIZE_3D + 1] = (dataCnt) & 0x00ff; // LSB
+		}
 
-        originalBuffer_Failed[0] = 0x00;
-        originalBuffer_Failed[1] = 0x01;
-        originalBuffer_Failed[2] = 0x02;
-        
-        return originalBuffer_Failed;
+		return &raw_bytes[0];
+/*
+		boost::asio::read(serial_, boost::asio::buffer(&raw_data[0], 1));
+		return &raw_data[0];*/
+
+		//ROS_INFO("DATA COUNT: %d => %x, %x", dataCnt, raw_bytes[DATABUFFER_SIZE_3D], raw_bytes[DATABUFFER_SIZE_3D + 1]);
     }
 
     void cyglidar_pcl::packet(int version_num)
@@ -70,19 +77,42 @@ namespace cyglidar_pcl_driver
                 break;
             case 1: // 3D
                 boost::asio::write(serial_, boost::asio::buffer(PACKET_START_3D));
-                boost::asio::write(serial_, boost::asio::buffer(PACKET_INTEGRATION_ON));
+                break;
+            case 2: // Dual
+                boost::asio::write(serial_, boost::asio::buffer(PACKET_START_DUAL));
                 break;
         }
-        
-        ROS_INFO("PACKET SENT (START, %d)", version_num);
+	    ROS_INFO("PACKET SENT (START, %d)", version_num);
+
+		// 3D Pulse Duration Control (Integration Time)
+		if (version_num != 0)
+		{
+			if (version_num == 1)
+			{
+				PACKET_INTEGRATION_TIME[6] = 10001000;
+				PACKET_INTEGRATION_TIME[7] = 01010011;
+			}
+			else 
+			{
+				PACKET_INTEGRATION_TIME[6] = 10001000;
+				PACKET_INTEGRATION_TIME[7] = 11010011;
+			}
+
+			uint8_t checkSum = 0x00;
+			for (size_t t = 3; t < PACKET_INTEGRATION_TIME.size() - 1; t++)
+			{
+				checkSum ^= PACKET_INTEGRATION_TIME[t];
+			}
+			PACKET_INTEGRATION_TIME[PACKET_INTEGRATION_TIME.size() - 1] = checkSum;
+		    boost::asio::write(serial_, boost::asio::buffer(PACKET_INTEGRATION_TIME));
+			ROS_INFO("PACKET_INTEGRATION_TIME WAS JUST FIRED... (%x, %x)", PACKET_INTEGRATION_TIME[5], PACKET_INTEGRATION_TIME[6]);
+		}
     }
 
     void cyglidar_pcl::close()
     {
         boost::asio::write(serial_, boost::asio::buffer(PACKET_STOP));
         ROS_INFO("PACKET SENT (STOP)");
-        
-        shutting_down_ = true;
     }
 
 }
