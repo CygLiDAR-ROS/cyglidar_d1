@@ -5,7 +5,7 @@ For more details in CygLiDAR, please visit http://www.cygbot.com
 ## How to use this package
 
 ### Preparation
-1) Clone this project to your catkin's workspace
+1) Clone this repository to your catkin's workspace
 2) Run catkin_make
 
 ### Set-Up
