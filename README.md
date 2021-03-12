@@ -18,7 +18,7 @@ chmod +x create_udev_rules.sh
 ```
 
 ### Parameters
-In cyglidar.launch, the version number of datasets can be switched 0(2D) and 1(3D) as below:
+In cyglidar.launch, the version number can be switched to 0, 1 and 2 for 2D, 3D and 2D/3D respectively as below:
 
 2D)
 <h1 align="left">
@@ -28,6 +28,11 @@ In cyglidar.launch, the version number of datasets can be switched 0(2D) and 1(3
 3D)
 <h1 align="left">
   <img src="screenshots/param_3d.png" width="600"/>
+</h1>
+
+2D/3D)
+<h1 align="left">
+  <img src="screenshots/param_2d3d.png" width="600"/>
 </h1>
 
 ### Run
@@ -45,5 +50,6 @@ In Rviz, the fixed frame and the topic for Point Cloud are respectively equivale
 
 ##### Topic
 ```bash
-/scan
+/scan_2D
+/scan_3D
 ```
