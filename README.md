@@ -41,7 +41,7 @@ roslaunch cyglidar_d1 cyglidar.launch
 ```
 
 ### Note
-In Rviz, the fixed frame and the topic for Point Cloud are respectively equivalent to the following:
+In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 
 ##### Fixed Frame
 ```bash
