@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <cyglidar_pcl.h>
+#include <CygbotParser.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl_ros/point_cloud.h>
@@ -40,7 +41,7 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D;
 tf::TransformListener *tf_listener;
 
-ros::Publisher pub;
+ros::Publisher pub_2D, pub_3D;
 int version_num;
 
 uint8_t *cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
@@ -51,6 +52,7 @@ float *cloudSetBuffer_2D = new float[DATASET_SIZE_2D];
 uint8_t* bufferPtr_2D;
 uint8_t* bufferPtr01;
 uint8_t* bufferPtr02;
+uint8_t* bufferPtr;
 
 uint8_t FIRST, SECOND, THIRD, LSB, MSB;
 
@@ -169,6 +171,9 @@ uint8_t cloudScatter_2D()
             }
         }
 
+        pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
+        pub_2D.publish(scan_2D);
+
         drawing = false; 
     }
 }
@@ -261,6 +266,9 @@ uint8_t cloudScatter_3D()
             }
         }
 
+        pcl_conversions::toPCL(ros::Time::now(), scan_3D->header.stamp);
+        pub_3D.publish(scan_3D);
+
         drawing = false;
     }
 }
@@ -281,7 +289,8 @@ void running()
 
     colorBuffer();
 
-    pub = nh.advertise<sensor_msgs::PointCloud2>("scan", 1);
+    pub_2D = nh.advertise<sensor_msgs::PointCloud2>("scan_2D", 1);
+    pub_3D = nh.advertise<sensor_msgs::PointCloud2>("scan_3D", 1);
     scan_2D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
     scan_3D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
     
@@ -318,6 +327,12 @@ void running()
     currentBuffer = 0x00;
     drawing = false;
 
+    bufferPtr = new uint8_t[DATABUFFER_SIZE_3D];
+    uint8_t* result;
+    uint8_t parser, inProgress = 0x00;
+	int bytes_transferred;
+	size_t sizePos = 2;
+    
     boost::asio::io_service io;
     try
     {
@@ -326,36 +341,51 @@ void running()
 
         while (ros::ok())
         {
-            uint8_t* result = laser.poll(version_num);
-            if (result[0] == 0x5A && result[1] == 0x77 && result[2] == 0xFF)
+            if (inProgress == 0x00)
             {
-                switch (result[5])
-                {
-                    case 0x01: // 2D
-                        bufferPtr_2D = &result[0];
-                        cloudScatter_2D();
+				inProgress = 0x01;
 
-                        pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
-                        pub.publish(scan_2D);
-                        break;
-                    case 0x08: // 3D
-                        switch (currentBuffer)
+                result = laser.poll(version_num);
+                bytes_transferred = (int)(result[DATABUFFER_SIZE_3D] << 8 | result[DATABUFFER_SIZE_3D + 1]);
+
+                if (bytes_transferred > 0)
+                {
+                    for (int i = 0; i < bytes_transferred; i++)
+                    {
+                        parser = CygParser(bufferPtr, result[i]);
+
+                        switch (parser)
                         {
-                            case 0x00:
-                                bufferPtr01 = &result[0];
-                                currentBuffer = 0x01;
-                                break;
                             case 0x01:
-                                bufferPtr02 = &result[0];
-                                currentBuffer = 0x00;
+                                switch (bufferPtr[5])
+                                {
+                                    case 0x01: // 2D
+                                        bufferPtr_2D = &bufferPtr[0];
+                                        cloudScatter_2D();
+                                        break;
+                                    case 0x08: // 3D
+                                        switch (currentBuffer)
+                                        {
+                                            case 0x00:
+                                                bufferPtr01 = &bufferPtr[0];
+                                                currentBuffer = 0x01;
+                                                break;
+                                            case 0x01:
+                                                bufferPtr02 = &bufferPtr[0];
+                                                currentBuffer = 0x00;
+                                                break;
+                                        }
+                                        cloudScatter_3D();
+                                        break;
+                                }
+                                break;
+                            default:
                                 break;
                         }
-                        cloudScatter_3D();
-
-                        pcl_conversions::toPCL(ros::Time::now(), scan_3D->header.stamp);
-                        pub.publish(scan_3D);
-                        break;
+                    }
                 }
+
+				inProgress = 0x00;
             }
         }
         laser.close();
