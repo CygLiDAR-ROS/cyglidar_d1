@@ -21,6 +21,11 @@
 #define DATABUFFER_SIZE_3D      14407
 #define DATASET_SIZE_3D         9600
 
+#define TRACKING_VALUE_3D       4001
+#define SATURATION_VALUE_3D     4083
+#define INTERFERENCE_VALUE_3D   4087
+#define ERROR_VALUE_3D          4080
+
 #define COLOR_MIN               0
 #define COLOR_MAX               255
 
@@ -42,7 +47,6 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D;
 tf::TransformListener *tf_listener;
 
 ros::Publisher pub_2D, pub_3D;
-int version_num;
 
 uint8_t *cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
 float *cloudSetBuffer = new float[DATASET_SIZE_3D];
@@ -110,7 +114,7 @@ void colorBuffer()
         }
     }
 
-    ROS_INFO("COLORS STORED (%d)", colorArray.size());
+    //ROS_INFO("COLORS STORED (%d)", colorArray.size());
 }
 
 bool drawing = false;
@@ -227,41 +231,52 @@ uint8_t cloudScatter_3D()
             {
                 index_3D = (xx + (yy * width));
 
-                if (cloudSetBuffer[index_3D] < (float)BASE_DEPTH_3D)
+                x_3D = abs(xx - centerX_3D);
+                y_3D = abs(yy - centerY_3D);
+                
+                tanA1_3D = y_3D / x_3D;
+                h_3D = (y_3D == 0 ? x_3D : (y_3D / sin(atan(tanA1_3D))));
+
+                tanA2_3D = FOCAL_LENGTH / h_3D;
+                tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
+
+                dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
+                actualDistance = (FOCAL_LENGTH * dRatio_3D);
+
+                actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
+                actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
+                
+                // Rotate the axis of clouds to the right
+                tempX_3D = actualX;
+                tempY_3D = actualDistance;
+                actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
+                actualDistance = (tempX_3D * sin(angleRadian)) + (tempY_3D * cos(angleRadian));
+                
+                scan_3D.get()->points[index_3D].x = actualX * DIVISOR;
+                scan_3D.get()->points[index_3D].y = actualDistance * DIVISOR;
+                scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
+
+                // Determine a cloud color based on the distance
+
+                if (cloudSetBuffer[index_3D] > BASE_DEPTH_3D)
                 {
-                    x_3D = abs(xx - centerX_3D);
-                    y_3D = abs(yy - centerY_3D);
-                    
-                    tanA1_3D = y_3D / x_3D;
-                    h_3D = (y_3D == 0 ? x_3D : (y_3D / sin(atan(tanA1_3D))));
-
-                    tanA2_3D = FOCAL_LENGTH / h_3D;
-                    tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
-
-                    dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
-                    actualDistance = (FOCAL_LENGTH * dRatio_3D);
-
-                    actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
-                    actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
-                    
-                    // Determine a cloud color based on the distance
-                    rgb_3D = colorArray[(int)actualDistance % colorArray.size()];
-                    scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
-                    scan_3D.get()->points[index_3D].a = 255;
-
-                    // Rotate the axis of clouds to the right
-                    tempX_3D = actualX;
-                    tempY_3D = actualDistance;
-                    actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
-                    actualDistance = (tempX_3D * sin(angleRadian)) + (tempY_3D * cos(angleRadian));
-                    
-                    scan_3D.get()->points[index_3D].x = actualX * DIVISOR;
-                    scan_3D.get()->points[index_3D].y = actualDistance * DIVISOR;
-                    scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
+                    if (cloudSetBuffer[index_3D] == SATURATION_VALUE_3D)
+                    {
+                        scan_3D.get()->points[index_3D].r = 210;
+                        scan_3D.get()->points[index_3D].g = 0;
+                        scan_3D.get()->points[index_3D].b = 255;
+                        scan_3D.get()->points[index_3D].a = 255;
+                    }
+                    else
+                    {
+                        scan_3D.get()->points[index_3D].a = 0;
+                    }
                 }
                 else
                 {
-                    scan_3D.get()->points[index_3D].a = 0;
+                    rgb_3D = colorArray[(int)tempY_3D % colorArray.size()];
+                    scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
+                    scan_3D.get()->points[index_3D].a = 255;
                 }
             }
         }
@@ -273,6 +288,7 @@ uint8_t cloudScatter_3D()
     }
 }
 
+int VERSION_NUM, FREQUENCY_LEVEL, PULSE_CONTROL, PULSE_DURATION;
 void running()
 {
     ros::NodeHandle nh;
@@ -284,8 +300,17 @@ void running()
 
     priv_nh.param("port", port, std::string("/dev/ttyUSB0"));
     priv_nh.param("baud_rate", baud_rate, 3000000);
-    priv_nh.param("version_num", version_num, 0);
     priv_nh.param("frame_id", frame_id, std::string("laser_link"));
+
+    priv_nh.param("version", VERSION_NUM, 0);
+    priv_nh.param("frequency", FREQUENCY_LEVEL, 0);
+    priv_nh.param("pulse_control", PULSE_CONTROL, 0);
+    priv_nh.param("duration", PULSE_DURATION, 0);
+
+
+    ROS_INFO("FREQUENCY: %d (%x) / PULSE CONTROL: %d, DURATION: %d (%x)", \
+    FREQUENCY_LEVEL, FREQUENCY_LEVEL, \
+    PULSE_CONTROL, PULSE_DURATION, PULSE_DURATION);
 
     colorBuffer();
 
@@ -337,7 +362,11 @@ void running()
     try
     {
         cyglidar_pcl_driver::cyglidar_pcl laser(port, baud_rate, io);
-        laser.packet(version_num);
+        laser.packet_run(VERSION_NUM);
+        ros::Duration(1.0).sleep();
+        laser.packet_frequency(FREQUENCY_LEVEL);
+        ros::Duration(1.0).sleep();
+        laser.packet_pulse(VERSION_NUM, PULSE_CONTROL, PULSE_DURATION);
 
         while (ros::ok())
         {
@@ -345,7 +374,7 @@ void running()
             {
 				inProgress = 0x01;
 
-                result = laser.poll(version_num);
+                result = laser.poll(VERSION_NUM);
                 bytes_transferred = (int)(result[DATABUFFER_SIZE_3D] << 8 | result[DATABUFFER_SIZE_3D + 1]);
 
                 if (bytes_transferred > 0)
