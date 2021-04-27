@@ -26,12 +26,22 @@ class cyglidar_pcl
         * @brief Poll the laser to get a new scan. Block until a complete new scan is received or close is called.
         * @param scan 
         */
-      uint8_t* poll(int version_num); 
+      uint8_t* poll(int version); 
 
       /**
-        * @brief Send a packet
+        * @brief Send a packet to run CygLiDAR
         */
-      void packet(int version_num);
+      void packet_run(int version);
+
+      /**
+        * @brief Send a packet to change a width of the pulse
+        */
+      void packet_pulse(int version, int pulse_control, int duration);
+
+      /**
+        * @brief Send a packet to assign a frequency level
+        */
+      void packet_frequency(int frequency);
 
       /**
         * @brief Close the driver down and prevent the polling loop from advancing
