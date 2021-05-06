@@ -1,25 +1,4 @@
 #include <cyglidar_pcl.h>
-#include <iostream>
-#include <ros/ros.h>
-
-#define START_COUNT             0
-#define DATABUFFER_SIZE_2D      249
-#define DATABUFFER_SIZE_3D      14407
-
-#define PACKET_HEADER_0         0x5A
-#define PACKET_HEADER_1         0x77        
-#define PACKET_HEADER_2         0xFF
-
-#define PULSE_LIDAR_TYPE        0
-#define PULSE_CONTROL_MODE      1
-#define PULSE_LIDAR_3D          0
-#define PULSE_LIDAR_DUAL        1
-#define PULSE_AUTO              0
-#define PULSE_MANUAL            1
-
-#define HEX_SIZE_ONE            4
-#define HEX_SIZE_TWO            8
-#define HEX_SIZE_FOUR           16
 
 static boost::array<uint8_t, 8> PACKET_START_2D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x01, 0x00, 0x03 };
 static boost::array<uint8_t, 8> PACKET_START_3D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x08, 0x00, 0x0A };

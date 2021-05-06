@@ -1,42 +1,4 @@
-#include <ros/ros.h>
 #include <cyglidar_pcl.h>
-#include <CygbotParser.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_msgs/UInt16.h>
-#include <boost/asio.hpp>
-#include <cmath>
-#include <thread>
-
-#define PAYLOAD_SIZE            6
-
-#define DATABUFFER_SIZE_2D      249
-#define DATASET_SIZE_2D         121
-#define BASE_DEPTH_3D           3000
-#define BASE_DEPTH_2D           16000
-#define BASE_ANGLE_2D           120
-
-#define DATABUFFER_SIZE_3D      14407
-#define DATASET_SIZE_3D         9600
-
-#define TRACKING_VALUE_3D       4001
-#define SATURATION_VALUE_3D     4083
-#define INTERFERENCE_VALUE_3D   4087
-#define ERROR_VALUE_3D          4080
-
-#define COLOR_MIN               0
-#define COLOR_MAX               255
-
-#define RIGHT_ANGLE             90
-#define HALF_ANGLE              180
-#define MATH_PI                 3.14159265
-
-#define DIVISOR                 0.001
-#define FOCAL_LENGTH            40.5
-#define HORIZONTAL_ANGLE        120
-#define VERTITAL_ANGLE          65
 
 const float RADIAN = MATH_PI / HALF_ANGLE;
 const float DEGREE = HALF_ANGLE / MATH_PI;
@@ -44,9 +6,10 @@ const float DEGREE = HALF_ANGLE / MATH_PI;
 typedef pcl::PointCloud<pcl::PointXYZRGBA> PointXYZRGBA;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D;
+sensor_msgs::LaserScan::Ptr scan_laser;
 tf::TransformListener *tf_listener;
 
-ros::Publisher pub_2D, pub_3D;
+ros::Publisher pub_2D, pub_3D, pub_scan;
 
 uint8_t *cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
 float *cloudSetBuffer = new float[DATASET_SIZE_3D];
@@ -142,11 +105,11 @@ uint8_t cloudScatter_2D()
         }
 
         point_angle_var_2D = 0.0;
-        angleStep_2D = ((float)BASE_ANGLE_2D / (float)DATASET_SIZE_2D);
+        angleStep_2D = (HORIZONTAL_ANGLE / (DATASET_SIZE_2D));
 
         for (int idx = 0; idx < DATASET_SIZE_2D; idx++)
         {
-            point_angle_2D = (float)(((BASE_ANGLE_2D / 2 * -1) + point_angle_var_2D) * RADIAN);
+            point_angle_2D = (float)(((HORIZONTAL_ANGLE / 2 * -1) + point_angle_var_2D) * RADIAN);
             point_angle_var_2D += angleStep_2D;
 
             actualDistance = (cloudSetBuffer_2D[idx]);
@@ -168,15 +131,22 @@ uint8_t cloudScatter_2D()
                 scan_2D.get()->points[idx].g = 255;
                 scan_2D.get()->points[idx].b = 0;
                 scan_2D.get()->points[idx].a = 255;
+
+                scan_laser->ranges[idx] = cloudSetBuffer_2D[idx] * DIVISOR;
             }
             else
             {
                 scan_2D.get()->points[idx].a = 0;
+
+                scan_laser->ranges[idx] = 0.0;
             }
         }
 
         pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
         pub_2D.publish(scan_2D);
+
+        scan_laser->header.stamp = ros::Time(0);
+        pub_scan.publish(scan_laser);
 
         drawing = false; 
     }
@@ -218,11 +188,11 @@ uint8_t cloudScatter_3D()
         }
 
         horizontalA_Half = (float)HORIZONTAL_ANGLE / 2;
-        verticalA_Single = (float)VERTITAL_ANGLE / centerX_3D;
+        verticalA_Single = (float)VERTICAL_ANGLE / centerX_3D;
         originalA_H = (atan(centerX_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
         originalA_V = (atan(centerY_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
         differenceA_H = (horizontalA_Half / originalA_H);
-        differenceA_V = ((VERTITAL_ANGLE / 2) / originalA_V);
+        differenceA_V = ((VERTICAL_ANGLE / 2) / originalA_V);
         
         index_3D = 0;
         for (int yy = 0; yy < height; yy++)
@@ -314,10 +284,22 @@ void running()
 
     colorBuffer();
 
+    pub_scan = nh.advertise<sensor_msgs::LaserScan>("scan_laser", DATABUFFER_SIZE_2D);
     pub_2D = nh.advertise<sensor_msgs::PointCloud2>("scan_2D", 1);
     pub_3D = nh.advertise<sensor_msgs::PointCloud2>("scan_3D", 1);
     scan_2D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
     scan_3D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
+    scan_laser = sensor_msgs::LaserScan::Ptr(new sensor_msgs::LaserScan);
+
+    // LaserScan
+    scan_laser->header.frame_id = frame_id;
+    //scan_laser->time_increment = (1.0 / 12.0) / 51.0;
+    scan_laser->angle_min = (HORIZONTAL_ANGLE / 2 + (HORIZONTAL_ANGLE / (DATASET_SIZE_2D - 1))) * RADIAN;
+    scan_laser->angle_max = -(HORIZONTAL_ANGLE / 2 + (HORIZONTAL_ANGLE / (DATASET_SIZE_2D - 1))) * RADIAN;
+    scan_laser->angle_increment = -((HORIZONTAL_ANGLE / (DATASET_SIZE_2D - 1)) * RADIAN);
+    scan_laser->range_min = 0.1;
+    scan_laser->range_max = (DISTANCE_MAX_2D * DIVISOR);
+    scan_laser->ranges.resize(DATASET_SIZE_2D);
     
     // PointCloud2 for 2D
     scan_2D.get()->is_dense = false;
