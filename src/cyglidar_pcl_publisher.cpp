@@ -224,7 +224,7 @@ uint8_t cloudScatter_3D()
                 
                 scan_3D.get()->points[index_3D].x = actualX * DIVISOR;
                 scan_3D.get()->points[index_3D].y = actualDistance * DIVISOR;
-                scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
+                scan_3D.get()->points[index_3D].z = actualY * DIVISOR;
 
                 // Determine a cloud color based on the distance
 
