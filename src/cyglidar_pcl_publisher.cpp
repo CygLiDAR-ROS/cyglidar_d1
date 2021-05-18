@@ -1,4 +1,42 @@
+#include <ros/ros.h>
 #include <cyglidar_pcl.h>
+#include <CygbotParser.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl_ros/transforms.h>
+#include <pcl_ros/point_cloud.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <std_msgs/UInt16.h>
+#include <boost/asio.hpp>
+#include <cmath>
+#include <thread>
+
+#define PAYLOAD_SIZE            6
+
+#define DATABUFFER_SIZE_2D      249
+#define DATASET_SIZE_2D         121
+#define BASE_DEPTH_3D           3000
+#define BASE_DEPTH_2D           16000
+#define BASE_ANGLE_2D           120
+
+#define DATABUFFER_SIZE_3D      14407
+#define DATASET_SIZE_3D         9600
+
+#define TRACKING_VALUE_3D       4001
+#define SATURATION_VALUE_3D     4083
+#define INTERFERENCE_VALUE_3D   4087
+#define ERROR_VALUE_3D          4080
+
+#define COLOR_MIN               0
+#define COLOR_MAX               255
+
+#define RIGHT_ANGLE             90
+#define HALF_ANGLE              180
+#define MATH_PI                 3.14159265
+
+#define DIVISOR                 0.001
+#define FOCAL_LENGTH            40.5
+#define HORIZONTAL_ANGLE        120
+#define VERTITAL_ANGLE          65
 
 const float RADIAN = MATH_PI / HALF_ANGLE;
 const float DEGREE = HALF_ANGLE / MATH_PI;
