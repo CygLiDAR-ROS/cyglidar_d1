@@ -31,9 +31,9 @@ class cyglidar_pcl
       /**
         * @brief packet-related functions
         */
-      void packet_run(int version)
-      void packet_pulse(int version, int pulse_control, int duration)
-      void packet_frequency(int frequency)
+      void packet_run(int version);
+      void packet_pulse(int version, int pulse_control, int duration);
+      void packet_frequency(int frequency);
 
       /**
         * @brief Close the driver down and prevent the polling loop from advancing
