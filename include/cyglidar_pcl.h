@@ -29,9 +29,11 @@ class cyglidar_pcl
       uint8_t* poll(int version_num); 
 
       /**
-        * @brief Send a packet
+        * @brief packet-related functions
         */
-      void packet(int version_num);
+      void packet_run(int version)
+      void packet_pulse(int version, int pulse_control, int duration)
+      void packet_frequency(int frequency)
 
       /**
         * @brief Close the driver down and prevent the polling loop from advancing
