@@ -50,6 +50,7 @@ In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 
 ##### Topic
 ```bash
+/scan_laser
 /scan_2D
 /scan_3D
 ```
