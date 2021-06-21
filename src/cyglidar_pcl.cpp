@@ -1,44 +1,12 @@
 #include <cyglidar_pcl.h>
-#include <iostream>
-#include <ros/ros.h>
 
-#define START_COUNT             0
-#define DATABUFFER_SIZE_2D      249
-#define DATABUFFER_SIZE_3D      14407
-
-#define PACKET_HEADER_0         0x5A
-#define PACKET_HEADER_1         0x77        
-#define PACKET_HEADER_2         0xFF
-
-#define PULSE_LIDAR_TYPE        0
-#define PULSE_CONTROL_MODE      1
-#define PULSE_LIDAR_3D          0
-#define PULSE_LIDAR_DUAL        1
-#define PULSE_AUTO              0
-#define PULSE_MANUAL            1
-
-#define HEX_SIZE_ONE            4
-#define HEX_SIZE_TWO            8
-#define HEX_SIZE_FOUR           16
-
-static boost::array<uint8_t, 8> PACKET_START_2D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x01, 0x00, 0x03 };
-static boost::array<uint8_t, 8> PACKET_START_3D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x08, 0x00, 0x0A };
-static boost::array<uint8_t, 8> PACKET_START_DUAL = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x07, 0x00, 0x05 };
-static boost::array<uint8_t, 8> PACKET_STOP = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x02, 0x00, 0x00 };
-
-static boost::array<uint8_t, 8> PACKET_FREQUENCY = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x0F, 0x00, 0x00 };
-static boost::array<uint8_t, 9> PACKET_INTEGRATION_TIME = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x03, 0x00, 0x0C, 0x00, 0x00, 0x00 };
-
-static boost::array<char, HEX_SIZE_TWO> MSB_BUFFER, LSB_BUFFER;
-static boost::array<char, HEX_SIZE_FOUR> BINARY_BUFFER;
-
-uint8_t checkSum = 0x00;
+uint8_t checkSum;
 uint8_t currentHex;
+uint8_t MSB_hex, LSB_hex;
 uint32_t completedHex;
 int tempHex, hexLoop;
-int binary_index, binaryBuf_size, modFreq;
+int binary_index, binaryBuf_size;
 int MSB_int, LSB_int;
-uint8_t MSB_hex, LSB_hex;
 
 using namespace std;
 namespace cyglidar_pcl_driver 
@@ -151,7 +119,7 @@ namespace cyglidar_pcl_driver
         binaryBuf_size = (BINARY_BUFFER.size() / sizeof(char));
         binary_index = (binaryBuf_size - 1);
 
-        modFreq = value;
+        int modFreq = value;
         //printf("DecimalToBinary ==> %d, %d ==> %d,", value, modFreq, modFreq % 2);
         BINARY_BUFFER[binary_index--] = (modFreq % 2);
         while (modFreq != 0)
@@ -184,23 +152,23 @@ namespace cyglidar_pcl_driver
 	boost::system::error_code errorCode;
 	int dataCnt = 0;
 
-	//uint8_t *raw_bytes = new uint8_t[DATABUFFER_SIZE_3D + 2];
-	boost::array<uint8_t, DATABUFFER_SIZE_3D + 2> raw_bytes;
+	//uint8_t *raw_bytes = new uint8_t[SIZE_MAX + 2];
+	boost::array<uint8_t, SIZE_MAX + 2> raw_bytes;
 
     uint8_t* cyglidar_pcl::poll(int version)
     {
-        //dataCnt = serial_.read_some(boost::asio::buffer(raw_bytes, DATABUFFER_SIZE_3D + 2), errorCode);
+        //dataCnt = serial_.read_some(boost::asio::buffer(raw_bytes, SIZE_MAX + 2), errorCode);
         dataCnt = boost::asio::read(serial_, boost::asio::buffer(raw_bytes), boost::asio::transfer_at_least(1), errorCode);
 
 		if (errorCode)
 		{
-			raw_bytes[DATABUFFER_SIZE_3D] = 0x00; // MSB
-			raw_bytes[DATABUFFER_SIZE_3D + 1] = 0x00; // LSB
+			raw_bytes[SIZE_MAX] = 0x00; // MSB
+			raw_bytes[SIZE_MAX + 1] = 0x00; // LSB
 		}
 		else
 		{
-			raw_bytes[DATABUFFER_SIZE_3D] = (dataCnt) >> 8; // MSB
-			raw_bytes[DATABUFFER_SIZE_3D + 1] = (dataCnt) & 0x00ff; // LSB
+			raw_bytes[SIZE_MAX] = (dataCnt) >> 8; // MSB
+			raw_bytes[SIZE_MAX + 1] = (dataCnt) & 0x00ff; // LSB
 		}
 
 		return &raw_bytes[0];
@@ -208,7 +176,7 @@ namespace cyglidar_pcl_driver
 		boost::asio::read(serial_, boost::asio::buffer(&raw_data[0], 1));
 		return &raw_data[0];*/
 
-		//ROS_INFO("DATA COUNT: %d => %x, %x", dataCnt, raw_bytes[DATABUFFER_SIZE_3D], raw_bytes[DATABUFFER_SIZE_3D + 1]);
+		//ROS_INFO("DATA COUNT: %d => %x, %x", dataCnt, raw_bytes[SIZE_MAX], raw_bytes[SIZE_MAX + 1]);
     }
 
     void cyglidar_pcl::packet_run(int version)
