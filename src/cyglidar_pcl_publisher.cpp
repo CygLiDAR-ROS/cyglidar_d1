@@ -402,7 +402,7 @@ void running()
                                         if (!buffer_setup_3d)
                                         {
                                             DATABUFFER_SIZE_3D = (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]) + PAYLOAD_SIZE;
-                                            float BYTESET_RATIO_3D = ((float)(MULTIPLY_100 - ((float)MULTIPLY_100 / (float)BYTESET_NUM_3D)) / (float)MULTIPLY_100);
+                                            float BYTESET_RATIO_3D = (2.0 / 3.0);
                                             DATASET_SIZE_3D = (int)((float)(DATABUFFER_SIZE_3D - PAYLOAD_SIZE) * BYTESET_RATIO_3D);
                                             cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
                                             cloudSetBuffer = new float[DATASET_SIZE_3D];
