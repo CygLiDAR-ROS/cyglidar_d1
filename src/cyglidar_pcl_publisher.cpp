@@ -1,56 +1,30 @@
-#include <ros/ros.h>
 #include <cyglidar_pcl.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_msgs/UInt16.h>
-#include <boost/asio.hpp>
-#include <cmath>
-#include <thread>
-
-#define PAYLOAD_SIZE            6
-
-#define DATABUFFER_SIZE_2D      249
-#define DATASET_SIZE_2D         121
-#define BASE_DEPTH_3D           3000
-#define BASE_DEPTH_2D           16000
-#define BASE_ANGLE_2D           120
-
-#define DATABUFFER_SIZE_3D      14407
-#define DATASET_SIZE_3D         9600
-
-#define COLOR_MIN               0
-#define COLOR_MAX               255
-
-#define RIGHT_ANGLE             90
-#define HALF_ANGLE              180
-#define MATH_PI                 3.14159265
-
-#define DIVISOR                 0.001
-#define FOCAL_LENGTH            40.5
-#define HORIZONTAL_ANGLE        120
-#define VERTITAL_ANGLE          65
 
 const float RADIAN = MATH_PI / HALF_ANGLE;
 const float DEGREE = HALF_ANGLE / MATH_PI;
 
+int DATABUFFER_SIZE_2D, DATABUFFER_SIZE_3D, DATASET_SIZE_2D, DATASET_SIZE_3D;
+
 typedef pcl::PointCloud<pcl::PointXYZRGBA> PointXYZRGBA;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D;
+sensor_msgs::LaserScan::Ptr scan_laser;
 tf::TransformListener *tf_listener;
 
-ros::Publisher pub;
-int version_num;
+ros::Publisher pub_2D, pub_3D, pub_scan;
 
-uint8_t *cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
-float *cloudSetBuffer = new float[DATASET_SIZE_3D];
-uint8_t *cloudBuffer_2D = new uint8_t[DATABUFFER_SIZE_2D - PAYLOAD_SIZE];
-float *cloudSetBuffer_2D = new float[DATASET_SIZE_2D];
+ros::Time current_time_laser, last_time_laser;
+double time_diff_laser;
+
+uint8_t *cloudBuffer;
+float *cloudSetBuffer;
+uint8_t *cloudBuffer_2D;
+float *cloudSetBuffer_2D;
 
 uint8_t* bufferPtr_2D;
 uint8_t* bufferPtr01;
 uint8_t* bufferPtr02;
+uint8_t* bufferPtr;
 
 uint8_t FIRST, SECOND, THIRD, LSB, MSB;
 
@@ -68,15 +42,15 @@ uint8_t r_setup, g_setup, b_setup;
 void colorBuffer()
 {
     int colors = 0;
-    r_setup = 255;
+    r_setup = 254;
     g_setup = 0;
     b_setup = 0;
 
-    for (int colors = 0; colors < 2; colors++)
+    for (int colorSet = 0; colorSet < 2; colorSet++)
     {
         for (int i = 0; i < 3; i++)
         {
-            for (int colorCnt = 0; colorCnt < COLOR_MAX + 1; colorCnt++)
+            for (int colorCnt = 0; colorCnt < COLOR_MAX; colorCnt++)
             {
                 switch (colors)
                 {
@@ -100,7 +74,7 @@ void colorBuffer()
                 rgb_setup = ((uint32_t)r_setup << 16 | (uint32_t)g_setup << 8 | (uint32_t)b_setup);
                 colorArray.push_back(rgb_setup);
 
-                if (colorCnt == COLOR_MAX)
+                if (colorCnt == COLOR_MAX - 1)
                 {
                     colors++;
                 }
@@ -108,7 +82,7 @@ void colorBuffer()
         }
     }
 
-    ROS_INFO("COLORS STORED (%d)", colorArray.size());
+    //ROS_INFO("COLORS STORED (%d)", colorArray.size());
 }
 
 bool drawing = false;
@@ -123,12 +97,11 @@ uint8_t cloudScatter_2D()
         memcpy(cloudBuffer_2D, &bufferPtr_2D[PAYLOAD_SIZE], sizeof(uint8_t) * DATABUFFER_SIZE_2D);
 
         distanceCnt_2D = 0;
-        angleStep_2D = 0;
 
         for (int dataLength = 0; dataLength < (DATABUFFER_SIZE_2D - PAYLOAD_SIZE) - 1; dataLength+=2)
         {
-            LSB = cloudBuffer_2D[dataLength];
-            MSB = cloudBuffer_2D[dataLength + 1];
+            MSB = cloudBuffer_2D[dataLength];
+            LSB = cloudBuffer_2D[dataLength + 1];
 
             data1 = (float)((MSB << 8) | LSB);
 
@@ -136,14 +109,16 @@ uint8_t cloudScatter_2D()
         }
 
         point_angle_var_2D = 0.0;
-        angleStep_2D = ((float)BASE_ANGLE_2D / (float)DATASET_SIZE_2D);
 
         for (int idx = 0; idx < DATASET_SIZE_2D; idx++)
         {
-            point_angle_2D = (float)(((BASE_ANGLE_2D / 2 * -1) + point_angle_var_2D) * RADIAN);
+            int data_idx = (DATASET_SIZE_2D - 1 - idx);
+            actualDistance = (cloudSetBuffer_2D[data_idx]);
+            
+            point_angle_2D = (float)(((HORIZONTAL_ANGLE / 2 * -1) + point_angle_var_2D) * RADIAN);
             point_angle_var_2D += angleStep_2D;
 
-            actualDistance = (cloudSetBuffer_2D[idx]);
+            //actualDistance = (cloudSetBuffer_2D[idx]);
             actualX = (sin(point_angle_2D) * actualDistance);
             actualY = (cos(point_angle_2D) * actualDistance); // depth
 
@@ -153,7 +128,7 @@ uint8_t cloudScatter_2D()
             actualY = (tempX_2D * sin(angleRadian)) + (tempY_2D * cos(angleRadian));
 
             scan_2D.get()->points[idx].x = actualX * DIVISOR;
-            scan_2D.get()->points[idx].y = actualY * DIVISOR;
+            scan_2D.get()->points[idx].y = -actualY * DIVISOR;
             scan_2D.get()->points[idx].z = 0.0;
             
             if (cloudSetBuffer_2D[idx] < (float)BASE_DEPTH_2D)
@@ -162,12 +137,27 @@ uint8_t cloudScatter_2D()
                 scan_2D.get()->points[idx].g = 255;
                 scan_2D.get()->points[idx].b = 0;
                 scan_2D.get()->points[idx].a = 255;
+
+                scan_laser->ranges[idx] = cloudSetBuffer_2D[data_idx] * DIVISOR;
             }
             else
             {
                 scan_2D.get()->points[idx].a = 0;
+
+                scan_laser->ranges[idx] = 0.0;
             }
         }
+
+        pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
+        pub_2D.publish(scan_2D);
+
+        current_time_laser = ros::Time::now();
+        time_diff_laser = (current_time_laser - last_time_laser).toSec();
+        scan_laser->scan_time = 0.0;
+        scan_laser->time_increment = time_diff_laser;
+        scan_laser->header.stamp = current_time_laser;//ros::Time(0);
+        last_time_laser = current_time_laser;
+        pub_scan.publish(scan_laser);
 
         drawing = false; 
     }
@@ -175,7 +165,7 @@ uint8_t cloudScatter_2D()
 
 int distanceCnt_3D, index_3D;
 float tempX_3D, tempY_3D, tempD_3D;
-float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, focalRatio_3D, tanA1_3D, aRatio_3D;
+float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, aRatio_3D, focalRatio_3D, tanA1_3D, tanA2_3D;
 float verticalA, horizontalA, verticalA_Single, horizontalA_Half, originalA_H, originalA_V, differenceA_H, differenceA_V;
 uint32_t rgb_3D;
 uint8_t cloudScatter_3D()
@@ -209,11 +199,11 @@ uint8_t cloudScatter_3D()
         }
 
         horizontalA_Half = (float)HORIZONTAL_ANGLE / 2;
-        verticalA_Single = (float)VERTITAL_ANGLE / centerX_3D;
+        verticalA_Single = (float)VERTICAL_ANGLE / centerX_3D;
         originalA_H = (atan(centerX_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
         originalA_V = (atan(centerY_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
         differenceA_H = (horizontalA_Half / originalA_H);
-        differenceA_V = ((VERTITAL_ANGLE / 2) / originalA_V);
+        differenceA_V = ((VERTICAL_ANGLE / 2) / originalA_V);
         
         index_3D = 0;
         for (int yy = 0; yy < height; yy++)
@@ -222,52 +212,64 @@ uint8_t cloudScatter_3D()
             {
                 index_3D = (xx + (yy * width));
 
-                if (cloudSetBuffer[index_3D] < (float)BASE_DEPTH_3D)
+                x_3D = abs(xx - centerX_3D);
+                y_3D = abs(yy - centerY_3D);
+                
+                tanA1_3D = y_3D / x_3D;
+                h_3D = (y_3D == 0 ? x_3D : (y_3D / sin(atan(tanA1_3D))));
+
+                tanA2_3D = FOCAL_LENGTH / h_3D;
+                tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
+
+                dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
+                actualDistance = (FOCAL_LENGTH * dRatio_3D);
+
+                actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
+                actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
+                
+                // Rotate the axis of clouds to the right
+                tempX_3D = actualX;
+                tempY_3D = actualDistance;
+                actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
+                actualDistance = (tempX_3D * sin(angleRadian)) + (tempY_3D * cos(angleRadian));
+                
+                scan_3D.get()->points[index_3D].x = actualX * DIVISOR;
+                scan_3D.get()->points[index_3D].y = actualDistance * DIVISOR;
+                scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
+
+                // Determine a cloud color based on the distance
+
+                if (cloudSetBuffer[index_3D] > BASE_DEPTH_3D)
                 {
-                    x_3D = abs(centerX_3D - xx);
-                    y_3D = abs(centerY_3D - yy);
-                    
-                    tanA1_3D = (x_3D / y_3D);
-                    h_3D = (x_3D == 0 ? 0 : (x_3D / sin(atan(tanA1_3D))));
-
-                    aRatio_3D = (h_3D / centerX_3D);
-                    horizontalA = (horizontalA_Half * aRatio_3D);
-                    verticalA = (verticalA_Single * y_3D);
-
-                    tempD_3D = (FOCAL_LENGTH / cos(horizontalA * RADIAN));
-
-                    dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
-                    actualDistance = (dRatio_3D * FOCAL_LENGTH);
-
-                    actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
-                    actualY = ((height - yy) - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
-                    
-                    // Determine a cloud color based on the distance
-                    rgb_3D = colorArray[(int)actualDistance % colorArray.size()];
-                    scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
-                    scan_3D.get()->points[index_3D].a = 255;
-
-                    // Rotate the axis of clouds to the right
-                    tempX_3D = actualX;
-                    tempY_3D = actualDistance;
-                    actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
-                    actualDistance = (tempX_3D * sin(angleRadian)) + (tempY_3D * cos(angleRadian));
-                    
-                    scan_3D.get()->points[index_3D].x = actualX * DIVISOR;
-                    scan_3D.get()->points[index_3D].y = actualDistance * DIVISOR;
-                    scan_3D.get()->points[index_3D].z = (actualY + HALF_ANGLE) * DIVISOR;
+                    if (cloudSetBuffer[index_3D] == SATURATION_VALUE_3D)
+                    {
+                        scan_3D.get()->points[index_3D].r = 210;
+                        scan_3D.get()->points[index_3D].g = 0;
+                        scan_3D.get()->points[index_3D].b = 255;
+                        scan_3D.get()->points[index_3D].a = 255;
+                    }
+                    else
+                    {
+                        scan_3D.get()->points[index_3D].a = 0;
+                    }
                 }
                 else
                 {
-                    scan_3D.get()->points[index_3D].a = 0;
+                    rgb_3D = colorArray[(int)tempY_3D % colorArray.size()];
+                    scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
+                    scan_3D.get()->points[index_3D].a = 255;
                 }
             }
         }
+
+        pcl_conversions::toPCL(ros::Time::now(), scan_3D->header.stamp);
+        pub_3D.publish(scan_3D);
 
         drawing = false;
     }
 }
 
+int VERSION_NUM, FREQUENCY_LEVEL, PULSE_CONTROL, PULSE_DURATION;
 void running()
 {
     ros::NodeHandle nh;
@@ -279,24 +281,33 @@ void running()
 
     priv_nh.param("port", port, std::string("/dev/ttyUSB0"));
     priv_nh.param("baud_rate", baud_rate, 3000000);
-    priv_nh.param("version_num", version_num, 0);
     priv_nh.param("frame_id", frame_id, std::string("laser_link"));
+
+    priv_nh.param("version", VERSION_NUM, 0);
+    priv_nh.param("frequency", FREQUENCY_LEVEL, 0);
+    priv_nh.param("pulse_control", PULSE_CONTROL, 0);
+    priv_nh.param("duration", PULSE_DURATION, 0);
+
+
+    ROS_INFO("FREQUENCY: %d (%x) / PULSE CONTROL: %d, DURATION: %d (%x)", \
+    FREQUENCY_LEVEL, FREQUENCY_LEVEL, \
+    PULSE_CONTROL, PULSE_DURATION, PULSE_DURATION);
 
     colorBuffer();
 
-    pub = nh.advertise<sensor_msgs::PointCloud2>("scan", 1);
+    pub_scan = nh.advertise<sensor_msgs::LaserScan>("scan_laser", SIZE_MAX);
+    pub_2D = nh.advertise<sensor_msgs::PointCloud2>("scan_2D", 1);
+    pub_3D = nh.advertise<sensor_msgs::PointCloud2>("scan_3D", 1);
     scan_2D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
     scan_3D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
+    scan_laser = sensor_msgs::LaserScan::Ptr(new sensor_msgs::LaserScan);
+
+    // LaserScan
+    scan_laser->header.frame_id = frame_id;
     
     // PointCloud2 for 2D
     scan_2D.get()->is_dense = false;
     scan_2D.get()->header.frame_id = frame_id;
-
-    scan_2D.get()->points.resize(DATABUFFER_SIZE_2D);
-    for (int point = 0; point < DATABUFFER_SIZE_2D; point++)
-    {
-        scan_2D.get()->points[point].a = 0;
-    }
 
     // PointCloud2 for 3D
     scan_3D.get()->width = 160;
@@ -310,55 +321,121 @@ void running()
     centerX_3D = (width / 2);
     centerY_3D = (height / 2);
 
-    scan_3D.get()->points.resize(DATABUFFER_SIZE_3D);
-    for (int point = 0; point < DATABUFFER_SIZE_3D; point++)
-    {
-        scan_3D.get()->points[point].a = 0;
-    }
-
     actualDistance = 0.0;
     length = 0.0;
     currentBuffer = 0x00;
     drawing = false;
 
+    bufferPtr = new uint8_t[SIZE_MAX];
+    uint8_t* result;
+    uint8_t parser, inProgress = 0x00;
+	int bytes_transferred;
+	size_t sizePos = 2;
+
+    current_time_laser = ros::Time::now();
+    last_time_laser = ros::Time::now();
+
+    bool buffer_setup_2d = false;
+    bool buffer_setup_3d = false;
+    
     boost::asio::io_service io;
     try
     {
         cyglidar_pcl_driver::cyglidar_pcl laser(port, baud_rate, io);
-        laser.packet(version_num);
+        laser.packet_run(VERSION_NUM);
+        ros::Duration(1.0).sleep();
+        laser.packet_frequency(FREQUENCY_LEVEL);
+        ros::Duration(1.0).sleep();
+        laser.packet_pulse(VERSION_NUM, PULSE_CONTROL, PULSE_DURATION);
+
+        int DATA_1 = 4, DATA_2 = 3;
 
         while (ros::ok())
         {
-            uint8_t* result = laser.poll(version_num);
-            if (result[0] == 0x5A && result[1] == 0x77 && result[2] == 0xFF)
+            if (inProgress == 0x00)
             {
-                switch (result[5])
-                {
-                    case 0x01: // 2D
-                        bufferPtr_2D = &result[0];
-                        cloudScatter_2D();
+				inProgress = 0x01;
 
-                        pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
-                        pub.publish(scan_2D);
-                        break;
-                    case 0x08: // 3D
-                        switch (currentBuffer)
+                result = laser.poll(VERSION_NUM);
+                bytes_transferred = (int)(result[SIZE_MAX] << 8 | result[SIZE_MAX + 1]);
+
+                if (bytes_transferred > 0)
+                {
+                    for (int i = 0; i < bytes_transferred; i++)
+                    {
+                        parser = CygParser(bufferPtr, result[i]);
+
+                        switch (parser)
                         {
-                            case 0x00:
-                                bufferPtr01 = &result[0];
-                                currentBuffer = 0x01;
-                                break;
                             case 0x01:
-                                bufferPtr02 = &result[0];
-                                currentBuffer = 0x00;
+                                //ROS_ERROR("DATA >> %x, %x, %x, %x, %x, %x",\
+                                bufferPtr[0], bufferPtr[1], bufferPtr[2], bufferPtr[3], bufferPtr[4], bufferPtr[5]);
+                                switch (bufferPtr[5])
+                                {
+                                    case 0x01: // 2D
+                                        if (!buffer_setup_2d)
+                                        {
+                                            DATABUFFER_SIZE_2D = (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]) + PAYLOAD_SIZE;
+                                            DATASET_SIZE_2D = (int)((float)(DATABUFFER_SIZE_2D - PAYLOAD_SIZE) / 2.0);
+                                            angleStep_2D = (HORIZONTAL_ANGLE / (DATASET_SIZE_2D - 1));
+
+                                            cloudBuffer_2D = new uint8_t[DATABUFFER_SIZE_2D - PAYLOAD_SIZE];
+                                            cloudSetBuffer_2D = new float[DATASET_SIZE_2D];
+
+                                            scan_laser->angle_min = -((double)HORIZONTAL_ANGLE / 2) * RADIAN;
+                                            scan_laser->angle_max = ((double)HORIZONTAL_ANGLE / 2) * RADIAN;
+                                            scan_laser->angle_increment = (angleStep_2D * RADIAN);
+                                            scan_laser->range_min = 0.1;
+                                            scan_laser->range_max = (DISTANCE_MAX_2D * DIVISOR);
+                                            scan_laser->ranges.resize(DATASET_SIZE_2D);
+                                            scan_2D.get()->points.resize(DATASET_SIZE_2D);
+
+                                            buffer_setup_2d = true;
+                                        }
+                                        
+                                        bufferPtr_2D = &bufferPtr[0];
+                                        cloudScatter_2D();
+                                        //ROS_ERROR("2D ==> %d [%d, %d]",\
+                                        (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]), DATABUFFER_SIZE_2D, DATASET_SIZE_2D);
+                                        break;
+                                    case 0x08: // 3D
+                                        if (!buffer_setup_3d)
+                                        {
+                                            DATABUFFER_SIZE_3D = (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]) + PAYLOAD_SIZE;
+                                            float BYTESET_RATIO_3D = ((float)(MULTIPLY_100 - ((float)MULTIPLY_100 / (float)BYTESET_NUM_3D)) / (float)MULTIPLY_100);
+                                            DATASET_SIZE_3D = (int)((float)(DATABUFFER_SIZE_3D - PAYLOAD_SIZE) * BYTESET_RATIO_3D);
+                                            cloudBuffer = new uint8_t[DATABUFFER_SIZE_3D - PAYLOAD_SIZE];
+                                            cloudSetBuffer = new float[DATASET_SIZE_3D];
+
+                                            scan_3D.get()->points.resize(DATASET_SIZE_3D);
+
+                                            buffer_setup_3d = true;
+                                        }
+
+                                        switch (currentBuffer)
+                                        {
+                                            case 0x00:
+                                                bufferPtr01 = &bufferPtr[0];
+                                                currentBuffer = 0x01;
+                                                break;
+                                            case 0x01:
+                                                bufferPtr02 = &bufferPtr[0];
+                                                currentBuffer = 0x00;
+                                                break;
+                                        }
+                                        cloudScatter_3D();
+                                        //ROS_ERROR("3D ==> %d [%d, %d]",\
+                                        (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]), DATABUFFER_SIZE_3D, DATASET_SIZE_3D);
+                                        break;
+                                }
+                                break;
+                            default:
                                 break;
                         }
-                        cloudScatter_3D();
-
-                        pcl_conversions::toPCL(ros::Time::now(), scan_3D->header.stamp);
-                        pub.publish(scan_3D);
-                        break;
+                    }
                 }
+
+				inProgress = 0x00;
             }
         }
         laser.close();
