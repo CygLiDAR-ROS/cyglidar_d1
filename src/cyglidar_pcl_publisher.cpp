@@ -131,7 +131,7 @@ uint8_t cloudScatter_2D()
             scan_2D.get()->points[idx].y = -actualY * DIVISOR;
             scan_2D.get()->points[idx].z = 0.0;
             
-            if (cloudSetBuffer_2D[idx] < (float)BASE_DEPTH_2D)
+            if (cloudSetBuffer_2D[data_idx] < (float)BASE_DEPTH_2D)
             {
                 scan_2D.get()->points[idx].r = 255;
                 scan_2D.get()->points[idx].g = 255;
@@ -142,6 +142,10 @@ uint8_t cloudScatter_2D()
             }
             else
             {
+                scan_2D.get()->points[idx].x = 0.0;
+                scan_2D.get()->points[idx].y = 0.0;
+                scan_2D.get()->points[idx].z = 0.0;
+
                 scan_2D.get()->points[idx].a = 0;
 
                 scan_laser->ranges[idx] = std::numeric_limits<float>::infinity();
