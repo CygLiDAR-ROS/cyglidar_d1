@@ -250,7 +250,7 @@ uint8_t cloudScatter_3D()
                     }
                     else
                     {
-                        scan_3D.get()->points[index_3D].a = std::numeric_limits<float>::infinity();
+                        scan_3D.get()->points[index_3D].a = 0;
                     }
                 }
                 else
