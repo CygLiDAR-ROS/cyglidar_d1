@@ -144,7 +144,7 @@ uint8_t cloudScatter_2D()
             {
                 scan_2D.get()->points[idx].a = 0;
 
-                scan_laser->ranges[idx] = 0.0;
+                scan_laser->ranges[idx] = std::numeric_limits<float>::infinity();
             }
         }
 
@@ -155,7 +155,7 @@ uint8_t cloudScatter_2D()
         time_diff_laser = (current_time_laser - last_time_laser).toSec() * 1e-3;
         scan_laser->scan_time = time_diff_laser;
         scan_laser->time_increment = (time_diff_laser / (float)(DATASET_SIZE_2D - 1));
-        scan_laser->header.stamp = current_time_laser;//ros::Time(0);
+        scan_laser->header.stamp = current_time_laser;
         last_time_laser = current_time_laser;
         pub_scan.publish(scan_laser);
 
