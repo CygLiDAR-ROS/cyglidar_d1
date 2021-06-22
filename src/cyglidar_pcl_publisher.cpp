@@ -152,9 +152,9 @@ uint8_t cloudScatter_2D()
         pub_2D.publish(scan_2D);
 
         current_time_laser = ros::Time::now();
-        time_diff_laser = (current_time_laser - last_time_laser).toSec();
-        scan_laser->scan_time = 0.0;
-        scan_laser->time_increment = time_diff_laser;
+        time_diff_laser = (current_time_laser - last_time_laser).toSec() * 1e-3;
+        scan_laser->scan_time = time_diff_laser;
+        scan_laser->time_increment = (time_diff_laser / (float)(DATASET_SIZE_2D - 1));
         scan_laser->header.stamp = current_time_laser;//ros::Time(0);
         last_time_laser = current_time_laser;
         pub_scan.publish(scan_laser);
@@ -250,7 +250,7 @@ uint8_t cloudScatter_3D()
                     }
                     else
                     {
-                        scan_3D.get()->points[index_3D].a = 0;
+                        scan_3D.get()->points[index_3D].a = std::numeric_limits<float>::infinity();
                     }
                 }
                 else
