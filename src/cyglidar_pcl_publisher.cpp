@@ -151,8 +151,6 @@ uint8_t cloudScatter_2D()
         pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
         pub_2D.publish(scan_2D);
 
-        current_time_laser = ros::Time::now();
-        time_diff_laser = (current_time_laser - last_time_laser).toSec() * 1e-3;
         scan_laser->scan_time = time_diff_laser;
         scan_laser->time_increment = (time_diff_laser / (float)(DATASET_SIZE_2D - 1));
         scan_laser->header.stamp = current_time_laser;
@@ -356,7 +354,7 @@ void running()
             {
 				inProgress = 0x01;
 
-                result = laser.poll(VERSION_NUM);
+                result = laser.poll(VERSION_NUM);               
                 bytes_transferred = (int)(result[SIZE_MAX] << 8 | result[SIZE_MAX + 1]);
 
                 if (bytes_transferred > 0)
@@ -393,7 +391,10 @@ void running()
                                             buffer_setup_2d = true;
                                         }
                                         
+                                        last_time_laser = ros::Time::now();
+                                        time_diff_laser = (current_time_laser - last_time_laser).toSec() * 1e-3;
                                         bufferPtr_2D = &bufferPtr[0];
+
                                         cloudScatter_2D();
                                         //ROS_ERROR("2D ==> %d [%d, %d]",\
                                         (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]), DATABUFFER_SIZE_2D, DATASET_SIZE_2D);
@@ -428,6 +429,9 @@ void running()
                                         (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]), DATABUFFER_SIZE_3D, DATASET_SIZE_3D);
                                         break;
                                 }
+                                break;
+                            case 0x02: // passed through header 1
+                                current_time_laser = ros::Time::now(); 
                                 break;
                             default:
                                 break;
