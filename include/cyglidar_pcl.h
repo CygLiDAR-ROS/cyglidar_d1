@@ -18,7 +18,7 @@
 #define PAYLOAD_SIZE            6
 
 #define BASE_DEPTH_3D           3000
-#define BASE_DEPTH_2D           16000
+#define BASE_DEPTH_2D           10000
 #define BASE_ANGLE_2D           120
 
 #define DISTANCE_MAX_2D         10000
