@@ -4,6 +4,7 @@ const float RADIAN = MATH_PI / HALF_ANGLE;
 const float DEGREE = HALF_ANGLE / MATH_PI;
 
 int DATABUFFER_SIZE_2D, DATABUFFER_SIZE_3D, DATASET_SIZE_2D, DATASET_SIZE_3D;
+double ANGLE_STEP_2D, ANGLE_POINT_2D;
 
 typedef pcl::PointCloud<pcl::PointXYZRGBA> PointXYZRGBA;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D;
@@ -87,15 +88,15 @@ void colorBuffer()
 
 bool drawing = false;
 int distanceCnt_2D;
-float angleStep_2D, point_angle_var_2D, point_angle_2D;
+float point_angle_var_2D, point_angle_2D;
 float tempX_2D, tempY_2D;
-uint8_t cloudScatter_2D()
+uint8_t cloudScatter_2D(ros::Time start, ros::Time end)
 {
     if (!drawing)
     {
         drawing = true;
         memcpy(cloudBuffer_2D, &bufferPtr_2D[PAYLOAD_SIZE], sizeof(uint8_t) * DATABUFFER_SIZE_2D);
-
+        
         distanceCnt_2D = 0;
 
         for (int dataLength = 0; dataLength < (DATABUFFER_SIZE_2D - PAYLOAD_SIZE) - 1; dataLength+=2)
@@ -108,6 +109,12 @@ uint8_t cloudScatter_2D()
             cloudSetBuffer_2D[distanceCnt_2D++] = data1;
         }
 
+        double scan_duration = (start - end).toSec() * 1e-3;
+
+        scan_laser->header.stamp = start;
+        scan_laser->scan_time = scan_duration;
+        scan_laser->time_increment = (scan_duration / (float)(DATASET_SIZE_2D - 1));
+
         point_angle_var_2D = 0.0;
 
         for (int idx = 0; idx < DATASET_SIZE_2D; idx++)
@@ -116,7 +123,7 @@ uint8_t cloudScatter_2D()
             actualDistance = (cloudSetBuffer_2D[data_idx]);
             
             point_angle_2D = (float)(((HORIZONTAL_ANGLE / 2 * -1) + point_angle_var_2D) * RADIAN);
-            point_angle_var_2D += angleStep_2D;
+            point_angle_var_2D += ANGLE_STEP_2D;
 
             //actualDistance = (cloudSetBuffer_2D[idx]);
             actualX = (sin(point_angle_2D) * actualDistance);
@@ -155,10 +162,6 @@ uint8_t cloudScatter_2D()
         pcl_conversions::toPCL(ros::Time::now(), scan_2D->header.stamp);
         pub_2D.publish(scan_2D);
 
-        scan_laser->scan_time = time_diff_laser;
-        scan_laser->time_increment = (time_diff_laser / (float)(DATASET_SIZE_2D - 1));
-        scan_laser->header.stamp = current_time_laser;
-        last_time_laser = current_time_laser;
         pub_scan.publish(scan_laser);
 
         drawing = false; 
@@ -379,27 +382,38 @@ void running()
                                         {
                                             DATABUFFER_SIZE_2D = (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]) + PAYLOAD_SIZE;
                                             DATASET_SIZE_2D = (int)((float)(DATABUFFER_SIZE_2D - PAYLOAD_SIZE) / 2.0);
-                                            angleStep_2D = (HORIZONTAL_ANGLE / (DATASET_SIZE_2D - 1));
+        
+                                            ANGLE_STEP_2D = (((double)BASE_ANGLE_2D / (double)(DATASET_SIZE_2D - 1)));
+                                            ANGLE_POINT_2D = ((double)BASE_ANGLE_2D / 2) * RADIAN;
+
+                                            //ROS_ERROR("\n2D BUFFER SET-UP COMPLETED >>\n\tBUFFER SIZE: %d\n\tSET SIZE: %d\n\tANGLE STEP: %.2f\n\tANGLE POINT: %.2f", \
+                                            DATABUFFER_SIZE_2D, DATASET_SIZE_2D, \
+                                            ANGLE_STEP_2D, ANGLE_POINT_2D);
 
                                             cloudBuffer_2D = new uint8_t[DATABUFFER_SIZE_2D - PAYLOAD_SIZE];
                                             cloudSetBuffer_2D = new float[DATASET_SIZE_2D];
 
-                                            scan_laser->angle_min = -((double)HORIZONTAL_ANGLE / 2) * RADIAN;
-                                            scan_laser->angle_max = ((double)HORIZONTAL_ANGLE / 2) * RADIAN;
-                                            scan_laser->angle_increment = (angleStep_2D * RADIAN);
+                                            scan_laser->header.frame_id = frame_id;
+
+                                            scan_laser->angle_min = -ANGLE_POINT_2D;
+                                            scan_laser->angle_max = ANGLE_POINT_2D;
+                                            scan_laser->angle_increment = ANGLE_STEP_2D * RADIAN;
+
                                             scan_laser->range_min = 0.1;
-                                            scan_laser->range_max = (DISTANCE_MAX_2D * DIVISOR);
+                                            scan_laser->range_max = ((double)BASE_DEPTH_2D * DIVISOR);
+
                                             scan_laser->ranges.resize(DATASET_SIZE_2D);
+                                            scan_laser->intensities.resize(DATASET_SIZE_2D);
+                                            
                                             scan_2D.get()->points.resize(DATASET_SIZE_2D);
 
                                             buffer_setup_2d = true;
                                         }
                                         
                                         last_time_laser = ros::Time::now();
-                                        time_diff_laser = (current_time_laser - last_time_laser).toSec() * 1e-3;
                                         bufferPtr_2D = &bufferPtr[0];
 
-                                        cloudScatter_2D();
+                                        cloudScatter_2D(current_time_laser, last_time_laser);
                                         //ROS_ERROR("2D ==> %d [%d, %d]",\
                                         (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]), DATABUFFER_SIZE_2D, DATASET_SIZE_2D);
                                         break;
@@ -434,7 +448,7 @@ void running()
                                         break;
                                 }
                                 break;
-                            case 0x02: // passed through header 1
+                            case 0x00: // passed through header 1
                                 current_time_laser = ros::Time::now(); 
                                 break;
                             default:

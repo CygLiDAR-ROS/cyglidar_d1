@@ -40,7 +40,7 @@
 #define MULTIPLY_100            100
 #define FOCAL_LENGTH            40.5
 
-#define HORIZONTAL_ANGLE        121.5
+#define HORIZONTAL_ANGLE        120
 #define VERTICAL_ANGLE          75
 
 #define START_COUNT             0
