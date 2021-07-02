@@ -24,10 +24,26 @@
 #define DISTANCE_MAX_2D         10000
 #define SIZE_MAX                20000
 
+#define INVALID_DATA_2D         16000
+#define LOW_AMPLITUDE_2D        16001
+#define ADC_OVERFLOW_2D         16002
+#define SATURATION_VALUE_2D     16003
+#define BAD_PIXEL_2D            16004
+
 #define TRACKING_VALUE_3D       4001
+#define INVALID_DATA_3D         4080
+#define LOW_AMPLITUDE_3D        4081
+#define ADC_OVERFLOW_3D         4082
 #define SATURATION_VALUE_3D     4083
 #define INTERFERENCE_VALUE_3D   4087
-#define ERROR_VALUE_3D          4080
+
+#define ADC_COL_R               173
+#define ADC_COL_G               216
+#define ADC_COL_B               230
+
+#define SAT_COL_R               128
+#define SAT_COL_G               0
+#define SAT_COL_B               128
 
 #define COLOR_MIN               0
 #define COLOR_MAX               255

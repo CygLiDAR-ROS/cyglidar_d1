@@ -4,7 +4,6 @@ const float RADIAN = MATH_PI / HALF_ANGLE;
 const float DEGREE = HALF_ANGLE / MATH_PI;
 
 int DATABUFFER_SIZE_2D, DATABUFFER_SIZE_3D, DATASET_SIZE_2D, DATASET_SIZE_3D;
-double ANGLE_STEP_2D, ANGLE_POINT_2D;
 
 typedef pcl::PointCloud<pcl::PointXYZRGBA> PointXYZRGBA;
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D;
@@ -13,9 +12,6 @@ sensor_msgs::LaserScan::Ptr scan_laser;
 tf::TransformListener *tf_listener;
 
 ros::Publisher pub_2D, pub_3D, pub_scan;
-
-ros::Time current_time_laser, last_time_laser;
-double time_diff_laser;
 
 uint8_t *cloudBuffer;
 float *cloudSetBuffer;
@@ -27,25 +23,18 @@ uint8_t* bufferPtr01;
 uint8_t* bufferPtr02;
 uint8_t* bufferPtr;
 
-uint8_t FIRST, SECOND, THIRD, LSB, MSB;
-
-float centerX_3D, centerY_3D, width, height;
-float actualX = 0.0, actualY = 0.0;
-
 float angleRadian = RADIAN * -RIGHT_ANGLE;
+float centerX_3D, centerY_3D, width, height;
 
-float data1, data2, actualDistance, length;
 uint8_t currentBuffer;
 
 static std::vector<uint32_t> colorArray;
-uint32_t rgb_setup;
-uint8_t r_setup, g_setup, b_setup;
 void colorBuffer()
 {
     int colors = 0;
-    r_setup = 254;
-    g_setup = 0;
-    b_setup = 0;
+    uint8_t r_setup = 254;
+    uint8_t g_setup = 0;
+    uint8_t b_setup = 0;
 
     for (int colorSet = 0; colorSet < 2; colorSet++)
     {
@@ -72,7 +61,7 @@ void colorBuffer()
                         break;
                 }
 
-                rgb_setup = ((uint32_t)r_setup << 16 | (uint32_t)g_setup << 8 | (uint32_t)b_setup);
+                uint32_t rgb_setup = ((uint32_t)r_setup << 16 | (uint32_t)g_setup << 8 | (uint32_t)b_setup);
                 colorArray.push_back(rgb_setup);
 
                 if (colorCnt == COLOR_MAX - 1)
@@ -87,24 +76,22 @@ void colorBuffer()
 }
 
 bool drawing = false;
-int distanceCnt_2D;
-float point_angle_var_2D, point_angle_2D;
 float tempX_2D, tempY_2D;
-uint8_t cloudScatter_2D(ros::Time start, ros::Time end)
+uint8_t cloudScatter_2D(ros::Time start, ros::Time end, double ANGLE_STEP_2D)
 {
     if (!drawing)
     {
         drawing = true;
         memcpy(cloudBuffer_2D, &bufferPtr_2D[PAYLOAD_SIZE], sizeof(uint8_t) * DATABUFFER_SIZE_2D);
         
-        distanceCnt_2D = 0;
+        int distanceCnt_2D = 0;
 
         for (int dataLength = 0; dataLength < (DATABUFFER_SIZE_2D - PAYLOAD_SIZE) - 1; dataLength+=2)
         {
-            MSB = cloudBuffer_2D[dataLength];
-            LSB = cloudBuffer_2D[dataLength + 1];
+            uint8_t MSB = cloudBuffer_2D[dataLength];
+            uint8_t LSB = cloudBuffer_2D[dataLength + 1];
 
-            data1 = (float)((MSB << 8) | LSB);
+            float data1 = (float)((MSB << 8) | LSB);
 
             cloudSetBuffer_2D[distanceCnt_2D++] = data1;
         }
@@ -115,19 +102,19 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end)
         scan_laser->scan_time = scan_duration;
         scan_laser->time_increment = (scan_duration / (float)(DATASET_SIZE_2D - 1));
 
-        point_angle_var_2D = 0.0;
+        float point_angle_var_2D = 0.0;
 
         for (int idx = 0; idx < DATASET_SIZE_2D; idx++)
         {
             int data_idx = (DATASET_SIZE_2D - 1 - idx);
-            actualDistance = (cloudSetBuffer_2D[data_idx]);
+            float actualDistance = (cloudSetBuffer_2D[data_idx]);
             
-            point_angle_2D = (float)(((HORIZONTAL_ANGLE / 2 * -1) + point_angle_var_2D) * RADIAN);
+            float point_angle_2D = (float)(((HORIZONTAL_ANGLE / 2 * -1) + point_angle_var_2D) * RADIAN);
             point_angle_var_2D += ANGLE_STEP_2D;
 
             //actualDistance = (cloudSetBuffer_2D[idx]);
-            actualX = (sin(point_angle_2D) * actualDistance);
-            actualY = (cos(point_angle_2D) * actualDistance); // depth
+            float actualX = (sin(point_angle_2D) * actualDistance);
+            float actualY = (cos(point_angle_2D) * actualDistance); // depth
 
             tempX_2D = actualX;
             tempY_2D = actualY;
@@ -144,17 +131,11 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end)
                 scan_2D.get()->points[idx].g = 255;
                 scan_2D.get()->points[idx].b = 0;
                 scan_2D.get()->points[idx].a = 255;
-
                 scan_laser->ranges[idx] = cloudSetBuffer_2D[data_idx] * DIVISOR;
             }
             else
             {
-                scan_2D.get()->points[idx].x = 0.0;
-                scan_2D.get()->points[idx].y = 0.0;
-                scan_2D.get()->points[idx].z = 0.0;
-
                 scan_2D.get()->points[idx].a = 0;
-
                 scan_laser->ranges[idx] = std::numeric_limits<float>::infinity();
             }
         }
@@ -168,11 +149,6 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end)
     }
 }
 
-int distanceCnt_3D, index_3D;
-float tempX_3D, tempY_3D, tempD_3D;
-float x_3D, y_3D, h_3D, fh_3D, dRatio_3D, aRatio_3D, focalRatio_3D, tanA1_3D, tanA2_3D;
-float verticalA, horizontalA, verticalA_Single, horizontalA_Half, originalA_H, originalA_V, differenceA_H, differenceA_V;
-uint32_t rgb_3D;
 uint8_t cloudScatter_3D()
 {
     if (!drawing)
@@ -189,52 +165,53 @@ uint8_t cloudScatter_3D()
                 break;
         }
         
-        distanceCnt_3D = 0;
+        int distanceCnt_3D = 0;
         for (int dataLength = 0; dataLength < (DATABUFFER_SIZE_3D - PAYLOAD_SIZE) - 1; dataLength+=3)
         {
-            FIRST = cloudBuffer[dataLength];
-            SECOND = cloudBuffer[dataLength + 1];
-            THIRD = cloudBuffer[dataLength + 2];
+            uint8_t FIRST = cloudBuffer[dataLength];
+            uint8_t SECOND = cloudBuffer[dataLength + 1];
+            uint8_t THIRD = cloudBuffer[dataLength + 2];
 
-            data1 = (float)((FIRST << 4) | (SECOND >> 4));
-            data2 = (float)(((SECOND & 0xf) << 8) | THIRD);
+            float data1 = (float)((FIRST << 4) | (SECOND >> 4));
+            float data2 = (float)(((SECOND & 0xf) << 8) | THIRD);
 
             cloudSetBuffer[distanceCnt_3D++] = data1;
             cloudSetBuffer[distanceCnt_3D++] = data2;
         }
 
-        horizontalA_Half = (float)HORIZONTAL_ANGLE / 2;
-        verticalA_Single = (float)VERTICAL_ANGLE / centerX_3D;
-        originalA_H = (atan(centerX_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
-        originalA_V = (atan(centerY_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
-        differenceA_H = (horizontalA_Half / originalA_H);
-        differenceA_V = ((VERTICAL_ANGLE / 2) / originalA_V);
+        float horizontalA_Half = (float)HORIZONTAL_ANGLE / 2;
+        float verticalA_Single = (float)VERTICAL_ANGLE / centerX_3D;
+        float originalA_H = (atan(centerX_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
+        float originalA_V = (atan(centerY_3D / FOCAL_LENGTH) * (HALF_ANGLE / MATH_PI));
+        float differenceA_H = (horizontalA_Half / originalA_H);
+        float differenceA_V = ((VERTICAL_ANGLE / 2) / originalA_V);
         
-        index_3D = 0;
+        int index_3D = 0;
         for (int yy = 0; yy < height; yy++)
         {
             for (int xx = 0; xx < width; xx++)
             {
                 index_3D = (xx + (yy * width));
 
-                x_3D = abs(xx - centerX_3D);
-                y_3D = abs(yy - centerY_3D);
+                float x_3D = abs(xx - centerX_3D);
+                float y_3D = abs(yy - centerY_3D);
                 
-                tanA1_3D = y_3D / x_3D;
-                h_3D = (y_3D == 0 ? x_3D : (y_3D / sin(atan(tanA1_3D))));
+                float tanA1_3D = y_3D / x_3D;
+                float h_3D = (y_3D == 0 ? x_3D : (y_3D / sin(atan(tanA1_3D))));
 
-                tanA2_3D = FOCAL_LENGTH / h_3D;
-                tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
+                float tanA2_3D = FOCAL_LENGTH / h_3D;
+                float tempD_3D = FOCAL_LENGTH / sin(atan(tanA2_3D));
 
-                dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
-                actualDistance = (FOCAL_LENGTH * dRatio_3D);
+                float dRatio_3D = (cloudSetBuffer[index_3D] / tempD_3D);
+                float actualDistance = (FOCAL_LENGTH * dRatio_3D);
 
-                actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
-                actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
+                float actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_H;
+                float actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH) * differenceA_V;
                 
                 // Rotate the axis of clouds to the right
-                tempX_3D = actualX;
-                tempY_3D = actualDistance;
+                float tempX_3D = actualX;
+                float tempY_3D = actualDistance;
+                
                 actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
                 actualDistance = (tempX_3D * sin(angleRadian)) + (tempY_3D * cos(angleRadian));
                 
@@ -244,25 +221,15 @@ uint8_t cloudScatter_3D()
 
                 // Determine a cloud color based on the distance
 
-                if (cloudSetBuffer[index_3D] > BASE_DEPTH_3D)
+                if (cloudSetBuffer[index_3D] < BASE_DEPTH_3D)
                 {
-                    if (cloudSetBuffer[index_3D] == SATURATION_VALUE_3D)
-                    {
-                        scan_3D.get()->points[index_3D].r = 210;
-                        scan_3D.get()->points[index_3D].g = 0;
-                        scan_3D.get()->points[index_3D].b = 255;
-                        scan_3D.get()->points[index_3D].a = 255;
-                    }
-                    else
-                    {
-                        scan_3D.get()->points[index_3D].a = 0;
-                    }
+                    uint32_t rgb_3D = colorArray[(int)tempY_3D % colorArray.size()];
+                    scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
+                    scan_3D.get()->points[index_3D].a = 255;
                 }
                 else
                 {
-                    rgb_3D = colorArray[(int)tempY_3D % colorArray.size()];
-                    scan_3D.get()->points[index_3D].rgb = *reinterpret_cast<float*>(&rgb_3D);
-                    scan_3D.get()->points[index_3D].a = 255;
+                    scan_3D.get()->points[index_3D].a = 0;
                 }
             }
         }
@@ -326,8 +293,6 @@ void running()
     centerX_3D = (width / 2);
     centerY_3D = (height / 2);
 
-    actualDistance = 0.0;
-    length = 0.0;
     currentBuffer = 0x00;
     drawing = false;
 
@@ -337,8 +302,8 @@ void running()
 	int bytes_transferred;
 	size_t sizePos = 2;
 
-    current_time_laser = ros::Time::now();
-    last_time_laser = ros::Time::now();
+    ros::Time current_time_laser = ros::Time::now();
+    ros::Time last_time_laser = ros::Time::now();
 
     bool buffer_setup_2d = false;
     bool buffer_setup_3d = false;
@@ -354,6 +319,7 @@ void running()
         laser.packet_pulse(VERSION_NUM, PULSE_CONTROL, PULSE_DURATION);
 
         int DATA_1 = 4, DATA_2 = 3;
+        double ANGLE_STEP_2D, ANGLE_POINT_2D;
 
         while (ros::ok())
         {
@@ -413,7 +379,7 @@ void running()
                                         last_time_laser = ros::Time::now();
                                         bufferPtr_2D = &bufferPtr[0];
 
-                                        cloudScatter_2D(current_time_laser, last_time_laser);
+                                        cloudScatter_2D(current_time_laser, last_time_laser, ANGLE_STEP_2D);
                                         //ROS_ERROR("2D ==> %d [%d, %d]",\
                                         (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]), DATABUFFER_SIZE_2D, DATASET_SIZE_2D);
                                         break;
