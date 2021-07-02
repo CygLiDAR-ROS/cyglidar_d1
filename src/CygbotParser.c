@@ -71,6 +71,7 @@ uint8_t CygParser(uint8_t *CmdBuff, uint8_t data)
 			CmdBuff[POS_CYGBOT_HEADER] = NORMAL_MODE;
 			CM = NormalMode;
 			PCL = Header2;
+			return 0x02;
 		}
 		break;
 	case Header2:
