@@ -129,6 +129,11 @@ class cyglidar_pcl
       void packet_frequency(int frequency);
 
       /**
+        * @brief Print every element of the array after sending the packet
+        */
+      void packet_confirmation(uint8_t* buffer, int count);
+
+      /**
         * @brief Close the driver down and prevent the polling loop from advancing
         */
       void close();

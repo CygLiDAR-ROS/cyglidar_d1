@@ -20,8 +20,7 @@ namespace cyglidar_pcl_driver
         }
         catch (const std::exception &e)
         {
-            ROS_ERROR("[Baud Rate] %d / %d\nCaught Exception: %s",
-            baud_rate, baud_rate_, e.what());
+            ROS_ERROR("Error Caught: %s", e.what());
             return;
         }
     }
@@ -97,7 +96,6 @@ namespace cyglidar_pcl_driver
     {
         completedHex = 0, hexLoop = 0;
         int modFreq = value;
-        //printf("DecimalToHex ==> %d, %d\t==>\t%d(%x),", value, modFreq, modFreq % 16, IntToHex(modFreq % 16));
         tempHex = IntToHex(modFreq % 16);
         AccumHex(tempHex, hexLoop++);
         while (modFreq != 0)
@@ -107,10 +105,8 @@ namespace cyglidar_pcl_driver
             {
                 tempHex = IntToHex(modFreq % 16);
                 AccumHex(tempHex, hexLoop++);
-                //printf("%d(%x),", modFreq % 16, tempHex);
             }
         }
-        //ROS_INFO("DecimalToHex: %x(%d)", completedHex, completedHex);
         return completedHex;
     }
     
@@ -120,7 +116,6 @@ namespace cyglidar_pcl_driver
         binary_index = (binaryBuf_size - 1);
 
         int modFreq = value;
-        //printf("DecimalToBinary ==> %d, %d ==> %d,", value, modFreq, modFreq % 2);
         BINARY_BUFFER[binary_index--] = (modFreq % 2);
         while (modFreq != 0)
         {
@@ -130,7 +125,6 @@ namespace cyglidar_pcl_driver
                 BINARY_BUFFER[binary_index--] = (modFreq % 2);
             }
         }
-        //printf("binary_index: %d / BINARY_BUFFER.size(): %d\t==>\t", binaryBuf_size - binary_index, binaryBuf_size);
         
         if (binary_index > 0)
         {
@@ -138,26 +132,16 @@ namespace cyglidar_pcl_driver
             {
                 BINARY_BUFFER[b] = 0;
             }
-        }/*
-
-        printf("DecimalToBinary: ");
-        for (int bSize = 0; bSize < binaryBuf_size; bSize++)
-        {
-            printf("%d", BINARY_BUFFER[bSize]);
-            if (bSize % 4 == 3) printf(" ");
         }
-        printf("\n");*/
     }
 
 	boost::system::error_code errorCode;
 	int dataCnt = 0;
 
-	//uint8_t *raw_bytes = new uint8_t[SIZE_MAX + 2];
 	boost::array<uint8_t, SIZE_MAX + 2> raw_bytes;
 
     uint8_t* cyglidar_pcl::poll(int version)
     {
-        //dataCnt = serial_.read_some(boost::asio::buffer(raw_bytes, SIZE_MAX + 2), errorCode);
         dataCnt = boost::asio::read(serial_, boost::asio::buffer(raw_bytes), boost::asio::transfer_at_least(1), errorCode);
 
 		if (errorCode)
@@ -172,11 +156,6 @@ namespace cyglidar_pcl_driver
 		}
 
 		return &raw_bytes[0];
-/*
-		boost::asio::read(serial_, boost::asio::buffer(&raw_data[0], 1));
-		return &raw_data[0];*/
-
-		//ROS_INFO("DATA COUNT: %d => %x, %x", dataCnt, raw_bytes[SIZE_MAX], raw_bytes[SIZE_MAX + 1]);
     }
 
     void cyglidar_pcl::packet_run(int version)
@@ -204,21 +183,17 @@ namespace cyglidar_pcl_driver
             if (pulse_control == 1)
             {
                 DecimalToBinary(duration);
-                //printf("Binary Splitting\t=>\t");
                 for (int bSize = 0; bSize < binaryBuf_size; bSize++)
                 {
                     if (bSize > (HEX_SIZE_TWO - 1))
                     {
                         LSB_BUFFER[bSize - HEX_SIZE_TWO] = BINARY_BUFFER[bSize];
-                        //printf("%d", LSB_BUFFER[bSize - HEX_SIZE_TWO]);
                     }
                     else
                     {
                         MSB_BUFFER[bSize] = BINARY_BUFFER[bSize];
-                        //printf("%d", MSB_BUFFER[bSize]);
-                        //if (bSize == (HEX_SIZE_TWO - 1)) printf(" ");
                     }
-                }//printf("\n");
+                }
                 MSB_BUFFER[PULSE_CONTROL_MODE] = PULSE_MANUAL;
             }
             else
@@ -236,13 +211,10 @@ namespace cyglidar_pcl_driver
                     break;
             }
 
-
-            //printf("Binary Splitting\t=>\t");
             for (int bSize = 0; bSize < binaryBuf_size; bSize++)
             {
                 if (bSize > (HEX_SIZE_TWO - 1))
                 {
-                    //printf("%d", LSB_BUFFER[bSize - HEX_SIZE_TWO]);
                     if (LSB_BUFFER[bSize - HEX_SIZE_TWO] > 0)
                     {
                         LSB_int += pow(2, HEX_SIZE_TWO - (bSize - HEX_SIZE_TWO) - 1);
@@ -250,15 +222,12 @@ namespace cyglidar_pcl_driver
                 }
                 else
                 {
-                    //printf("%d", MSB_BUFFER[bSize]);
-                    //if (bSize == (HEX_SIZE_TWO - 1)) printf(" ");
                     if (MSB_BUFFER[bSize] > 0)
                     {
                         MSB_int += pow(2, (HEX_SIZE_TWO - bSize - 1));
                     }
                 }
             }
-            //printf("\t==>\t%d, %d\n", MSB_int, LSB_int);
 
             PACKET_INTEGRATION_TIME[6] = DecimalToHex(LSB_int);
             PACKET_INTEGRATION_TIME[7] = DecimalToHex(MSB_int);
@@ -272,14 +241,7 @@ namespace cyglidar_pcl_driver
 
 		    boost::asio::write(serial_, boost::asio::buffer(PACKET_INTEGRATION_TIME));
 			ROS_INFO("PACKET_INTEGRATION_TIME HAS BEEN APPLIED [%d]", duration);
-
-            printf("\tPACKET: ");
-            for (size_t buf = 0; buf < PACKET_INTEGRATION_TIME.size(); buf++)
-            {
-                printf("%x", PACKET_INTEGRATION_TIME[buf]);
-                if (buf < (PACKET_INTEGRATION_TIME.size() - 1)) printf(",");
-            }
-            printf("\n");
+            packet_confirmation(&PACKET_INTEGRATION_TIME[0], PACKET_INTEGRATION_TIME.size());
         }
     }
 
@@ -296,12 +258,16 @@ namespace cyglidar_pcl_driver
 
         boost::asio::write(serial_, boost::asio::buffer(PACKET_FREQUENCY));
         ROS_INFO("PACKET_FREQUENCY HAS BEEN UPDATED [%d]", frequency);
+        packet_confirmation(&PACKET_FREQUENCY[0], PACKET_FREQUENCY.size());
+    }
 
+    void cyglidar_pcl::packet_confirmation(uint8_t* buffer, int count)
+    {
         printf("\tPACKET: ");
-        for (size_t buf = 0; buf < PACKET_FREQUENCY.size(); buf++)
+        for (size_t buf = 0; buf < count; buf++)
         {
-            printf("%x", PACKET_FREQUENCY[buf]);
-            if (buf < (PACKET_FREQUENCY.size() - 1)) printf(",");
+            printf("%x", buffer[buf]);
+            if (buf < (count - 1)) printf(",");
         }
         printf("\n");
     }
