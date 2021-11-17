@@ -52,7 +52,7 @@
 #define HALF_ANGLE              180
 #define MATH_PI                 3.14159265
 
-#define DIVISOR                 0.001
+#define MM2M                    0.001
 #define MULTIPLY_100            100
 #define FOCAL_LENGTH            40.5
 
@@ -88,6 +88,19 @@ static boost::array<uint8_t, 9> PACKET_INTEGRATION_TIME = { PACKET_HEADER_0, PAC
 
 static boost::array<char, HEX_SIZE_TWO> MSB_BUFFER, LSB_BUFFER;
 static boost::array<char, HEX_SIZE_FOUR> BINARY_BUFFER;
+
+namespace CameraIntrinsicParameters
+{
+  const double cx = 78.0; // center point x
+  const double cy = 30.0; // center point y
+  const double f = 45.0;  // focal length f
+}
+
+namespace LensDistortionCoefficients
+{
+  const double k1 = 0.059230986798945104;   // distortion coefficient k1
+  const double k2 = -0.013372466010805550;  // distortion coefficient k2
+}
 
 namespace cyglidar_pcl_driver {
 class cyglidar_pcl

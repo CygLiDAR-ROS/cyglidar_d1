@@ -30,109 +30,10 @@ namespace cyglidar_pcl_driver
         serial_.close();
     }
 
-    uint8_t IntToHex(int value)
-    {
-        switch (value)
-        {
-            case 0:
-                currentHex = 0x00;
-                break;
-            case 1:
-                currentHex = 0x01;
-                break;
-            case 2:
-                currentHex = 0x02;
-                break;
-            case 3:
-                currentHex = 0x03;
-                break;
-            case 4:
-                currentHex = 0x04;
-                break;
-            case 5:
-                currentHex = 0x05;
-                break;
-            case 6:
-                currentHex = 0x06;
-                break;
-            case 7:
-                currentHex = 0x07;
-                break;
-            case 8:
-                currentHex = 0x08;
-                break;
-            case 9:
-                currentHex = 0x09;
-                break;
-            case 10:
-                currentHex = 0x0A;
-                break;
-            case 11:
-                currentHex = 0x0B;
-                break;
-            case 12:
-                currentHex = 0x0C;
-                break;
-            case 13:
-                currentHex = 0x0D;
-                break;
-            case 14:
-                currentHex = 0x0E;
-                break;
-            case 15:
-                currentHex = 0x0F;
-                break;
-        }
-        return currentHex;
-    }
-    
     uint32_t AccumHex(uint8_t hex, int hexLoop)
     {
         completedHex = (completedHex | (hex << (hexLoop * HEX_SIZE_ONE)));
         return completedHex;
-    }
-
-    uint32_t DecimalToHex(int value)
-    {
-        completedHex = 0, hexLoop = 0;
-        int modFreq = value;
-        tempHex = IntToHex(modFreq % 16);
-        AccumHex(tempHex, hexLoop++);
-        while (modFreq != 0)
-        {
-            modFreq = ((modFreq - (modFreq % 16)) / 16);
-            if (modFreq > 0)
-            {
-                tempHex = IntToHex(modFreq % 16);
-                AccumHex(tempHex, hexLoop++);
-            }
-        }
-        return completedHex;
-    }
-    
-    void DecimalToBinary(int value)
-    {
-        binaryBuf_size = (BINARY_BUFFER.size() / sizeof(char));
-        binary_index = (binaryBuf_size - 1);
-
-        int modFreq = value;
-        BINARY_BUFFER[binary_index--] = (modFreq % 2);
-        while (modFreq != 0)
-        {
-            modFreq = ((modFreq - (modFreq % 2)) / 2);
-            if (modFreq > 0)
-            {
-                BINARY_BUFFER[binary_index--] = (modFreq % 2);
-            }
-        }
-        
-        if (binary_index > 0)
-        {
-            for (int b = binary_index; b > -1; b--)
-            {
-                BINARY_BUFFER[b] = 0;
-            }
-        }
     }
 
 	boost::system::error_code errorCode;
@@ -182,7 +83,6 @@ namespace cyglidar_pcl_driver
             MSB_int = 0, LSB_int = 0;
             if (pulse_control == 1)
             {
-                DecimalToBinary(duration);
                 for (int bSize = 0; bSize < binaryBuf_size; bSize++)
                 {
                     if (bSize > (HEX_SIZE_TWO - 1))
@@ -229,8 +129,8 @@ namespace cyglidar_pcl_driver
                 }
             }
 
-            PACKET_INTEGRATION_TIME[6] = DecimalToHex(LSB_int);
-            PACKET_INTEGRATION_TIME[7] = DecimalToHex(MSB_int);
+            PACKET_INTEGRATION_TIME[6] = LSB_int;
+            PACKET_INTEGRATION_TIME[7] = MSB_int;
 
 			checkSum = 0x00;
 			for (size_t t = 3; t < PACKET_INTEGRATION_TIME.size() - 1; t++)
@@ -247,7 +147,7 @@ namespace cyglidar_pcl_driver
 
     void cyglidar_pcl::packet_frequency(int frequency)
     {
-        PACKET_FREQUENCY[6] = DecimalToHex(frequency);
+        PACKET_FREQUENCY[6] = frequency;
             
         checkSum = 0x00;
         for (size_t t = 3; t < PACKET_FREQUENCY.size() - 1; t++)
