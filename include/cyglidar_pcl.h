@@ -22,7 +22,7 @@
 #define BASE_ANGLE_2D           120
 
 #define DISTANCE_MAX_2D         10000
-#define SIZE_MAX                20000
+#define SCAN_MAX_SIZE           20000
 
 #define INVALID_DATA_2D         16000
 #define LOW_AMPLITUDE_2D        16001
@@ -64,7 +64,7 @@
 #define BYTESET_NUM_3D          3
 
 #define PACKET_HEADER_0         0x5A
-#define PACKET_HEADER_1         0x77        
+#define PACKET_HEADER_1         0x77
 #define PACKET_HEADER_2         0xFF
 
 #define PULSE_LIDAR_TYPE        0
@@ -77,17 +77,6 @@
 #define HEX_SIZE_ONE            4
 #define HEX_SIZE_TWO            8
 #define HEX_SIZE_FOUR           16
-
-static boost::array<uint8_t, 8> PACKET_START_2D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x01, 0x00, 0x03 };
-static boost::array<uint8_t, 8> PACKET_START_3D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x08, 0x00, 0x0A };
-static boost::array<uint8_t, 8> PACKET_START_DUAL = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x07, 0x00, 0x05 };
-static boost::array<uint8_t, 8> PACKET_STOP = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x02, 0x00, 0x00 };
-
-static boost::array<uint8_t, 8> PACKET_FREQUENCY = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x0F, 0x00, 0x00 };
-static boost::array<uint8_t, 9> PACKET_INTEGRATION_TIME = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x03, 0x00, 0x0C, 0x00, 0x00, 0x00 };
-
-static boost::array<char, HEX_SIZE_TWO> MSB_BUFFER, LSB_BUFFER;
-static boost::array<char, HEX_SIZE_FOUR> BINARY_BUFFER;
 
 namespace CameraIntrinsicParameters
 {
@@ -122,9 +111,9 @@ class cyglidar_pcl
 
       /**
         * @brief Poll the laser to get a new scan. Block until a complete new scan is received or close is called.
-        * @param scan 
+        * @param scan
         */
-      uint8_t* poll(int version); 
+      uint8_t* poll(int version);
 
       /**
         * @brief Send a packet to run CygLiDAR
