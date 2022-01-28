@@ -9,8 +9,23 @@ int binary_index, binaryBuf_size;
 int MSB_int, LSB_int;
 
 using namespace std;
-namespace cyglidar_pcl_driver 
+namespace cyglidar_pcl_driver
 {
+
+namespace
+{
+    boost::array<uint8_t, 8> PACKET_START_2D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x01, 0x00, 0x03 };
+    boost::array<uint8_t, 8> PACKET_START_3D = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x08, 0x00, 0x0A };
+    boost::array<uint8_t, 8> PACKET_START_DUAL = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x07, 0x00, 0x05 };
+    boost::array<uint8_t, 8> PACKET_STOP = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x02, 0x00, 0x00 };
+
+    boost::array<uint8_t, 8> PACKET_FREQUENCY = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x02, 0x00, 0x0F, 0x00, 0x00 };
+    boost::array<uint8_t, 9> PACKET_INTEGRATION_TIME = { PACKET_HEADER_0, PACKET_HEADER_1, PACKET_HEADER_2, 0x03, 0x00, 0x0C, 0x00, 0x00, 0x00 };
+
+    boost::array<char, HEX_SIZE_TWO> MSB_BUFFER, LSB_BUFFER;
+    boost::array<char, HEX_SIZE_FOUR> BINARY_BUFFER;
+} // namespace
+
     cyglidar_pcl::cyglidar_pcl(const std::string& port, uint32_t baud_rate, boost::asio::io_service& io)
     :port_(port), baud_rate_(baud_rate), serial_(io, port_)
     {
@@ -39,7 +54,7 @@ namespace cyglidar_pcl_driver
 	boost::system::error_code errorCode;
 	int dataCnt = 0;
 
-	boost::array<uint8_t, SIZE_MAX + 2> raw_bytes;
+	boost::array<uint8_t, SCAN_MAX_SIZE + 2> raw_bytes;
 
     uint8_t* cyglidar_pcl::poll(int version)
     {
@@ -47,13 +62,13 @@ namespace cyglidar_pcl_driver
 
 		if (errorCode)
 		{
-			raw_bytes[SIZE_MAX] = 0x00; // MSB
-			raw_bytes[SIZE_MAX + 1] = 0x00; // LSB
+			raw_bytes[SCAN_MAX_SIZE] = 0x00; // MSB
+			raw_bytes[SCAN_MAX_SIZE + 1] = 0x00; // LSB
 		}
 		else
 		{
-			raw_bytes[SIZE_MAX] = (dataCnt) >> 8; // MSB
-			raw_bytes[SIZE_MAX + 1] = (dataCnt) & 0x00ff; // LSB
+			raw_bytes[SCAN_MAX_SIZE] = (dataCnt) >> 8; // MSB
+			raw_bytes[SCAN_MAX_SIZE + 1] = (dataCnt) & 0x00ff; // LSB
 		}
 
 		return &raw_bytes[0];
@@ -148,7 +163,7 @@ namespace cyglidar_pcl_driver
     void cyglidar_pcl::packet_frequency(int frequency)
     {
         PACKET_FREQUENCY[6] = frequency;
-            
+
         checkSum = 0x00;
         for (size_t t = 3; t < PACKET_FREQUENCY.size() - 1; t++)
         {
@@ -164,7 +179,7 @@ namespace cyglidar_pcl_driver
     void cyglidar_pcl::packet_confirmation(uint8_t* buffer, int count)
     {
         printf("\tPACKET: ");
-        for (size_t buf = 0; buf < count; buf++)
+        for (int buf = 0; buf < count; buf++)
         {
             printf("%x", buffer[buf]);
             if (buf < (count - 1)) printf(",");

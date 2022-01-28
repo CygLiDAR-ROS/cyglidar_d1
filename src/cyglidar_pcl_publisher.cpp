@@ -115,7 +115,7 @@ void colorBuffer()
 
 bool drawing = false;
 float tempX_2D, tempY_2D;
-uint8_t cloudScatter_2D(ros::Time start, ros::Time end, const double ANGLE_STEP_2D)
+void cloudScatter_2D(ros::Time start, ros::Time end, const double ANGLE_STEP_2D)
 {
     if (!drawing)
     {
@@ -124,7 +124,7 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end, const double ANGLE_STEP_
 
         // Copy the memory of the rawdata array to the working array
         memcpy(cloudBuffer_2D, &bufferPtr_2D[PAYLOAD_SIZE], sizeof(uint8_t) * DATABUFFER_SIZE_2D);
-        
+
         int distanceCnt_2D = 0;
 
         // Convert rawdata to measured distance appending both separated data (LSB and MSB)
@@ -154,7 +154,7 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end, const double ANGLE_STEP_
             // Reverse data order of the array
             int data_idx = (DATASET_SIZE_2D - 1 - idx);
             float actualDistance = (cloudSetBuffer_2D[data_idx]);
-            
+
             // Get the latest angle of the distance
             float point_angle_2D = (float)(((-HORIZONTAL_ANGLE / 2)+ point_angle_var_2D) * RADIAN);
             point_angle_var_2D += ANGLE_STEP_2D;
@@ -173,7 +173,7 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end, const double ANGLE_STEP_
             scan_2D.get()->points[idx].x = actualX * MM2M;
             scan_2D.get()->points[idx].y = -actualY * MM2M;
             scan_2D.get()->points[idx].z = 0.0;
-            
+
             // Turn data invisible when it's greater than the maximum
             if (cloudSetBuffer_2D[data_idx] < (float)BASE_DEPTH_2D)
             {
@@ -197,11 +197,11 @@ uint8_t cloudScatter_2D(ros::Time start, ros::Time end, const double ANGLE_STEP_
         pub_scan.publish(scan_laser);
 
         // Allow the latest dataset to enter in this constructor
-        drawing = false; 
+        drawing = false;
     }
 }
 
-uint8_t cloudScatter_3D()
+void cloudScatter_3D()
 {
     if (!drawing)
     {
@@ -220,7 +220,7 @@ uint8_t cloudScatter_3D()
                 currentBuffer = 0x00;
                 break;
         }
-        
+
         // Convert rawdata to measured distance appending both separated data (LSB and MSB)
         int distanceCnt_3D = 0;
         for (int dataLength = 0; dataLength < (DATABUFFER_SIZE_3D - PAYLOAD_SIZE) - 1; dataLength+=3)
@@ -245,7 +245,7 @@ uint8_t cloudScatter_3D()
             for (int xx = 0; xx < ImageWidth; xx++)
             {
                 index_3D = (xx + (yy * ImageWidth));
-                    double UnDis_x = DistortionHashMap[index_3D].first;   
+                    double UnDis_x = DistortionHashMap[index_3D].first;
                     double UnDis_y = DistortionHashMap[index_3D].second;
                 if(isValidCoordinate(UnDis_x, UnDis_y, (double)ImageWidth, (double)ImageHeight))
                 {
@@ -261,7 +261,7 @@ uint8_t cloudScatter_3D()
 
                     // Get the tangent of an angle and the hypotenuse about focal length
                     float hh_3D = ll_3D + (CameraIntrinsicParameters::f*CameraIntrinsicParameters::f);
-                    
+
                     // Calculate the ratio between the distance and the hypotenuse right above
                     float dRatio_3D = (cloudSetBuffer[UnDisIndex] / sqrt(hh_3D));
                     float actualDistance = (FOCAL_LENGTH * dRatio_3D);
@@ -269,14 +269,14 @@ uint8_t cloudScatter_3D()
                     // Calculate both X and Y coordinates
                     float actualX = (xx - centerX_3D) * (actualDistance / FOCAL_LENGTH);
                     float actualY = -(yy - centerY_3D) * (actualDistance / FOCAL_LENGTH);
-                    
+
                     // Rotate the dataset 90 clockwise about the origin
                     float tempX_3D = actualX;
                     float tempY_3D = actualDistance;
-                    
+
                     actualX = (tempX_3D * cos(angleRadian)) + (tempY_3D * -sin(angleRadian));
                     actualDistance = (tempX_3D * sin(angleRadian)) + (tempY_3D * cos(angleRadian));
-                    
+
                     // Store the computed coordinates to PointCloud2 and LaserScan
                     scan_3D.get()->points[UnDisIndex].x = actualX * MM2M;
                     scan_3D.get()->points[UnDisIndex].y = actualDistance * MM2M;
@@ -338,7 +338,7 @@ void running()
     MakeDistortionHashMap(DistortionHashMap, ImageWidth, ImageHeight);
 
     // Initialize variables
-    pub_scan = nh.advertise<sensor_msgs::LaserScan>("scan_laser", SIZE_MAX);
+    pub_scan = nh.advertise<sensor_msgs::LaserScan>("scan_laser", SCAN_MAX_SIZE);
     pub_2D = nh.advertise<sensor_msgs::PointCloud2>("scan_2D", 1);
     pub_3D = nh.advertise<sensor_msgs::PointCloud2>("scan_3D", 1);
     scan_2D = pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
@@ -354,11 +354,10 @@ void running()
     currentBuffer = 0x00;
     drawing = false;
 
-    bufferPtr = new uint8_t[SIZE_MAX];
+    bufferPtr = new uint8_t[SCAN_MAX_SIZE];
     uint8_t* result;
     uint8_t parser, inProgress = 0x00;
 	int bytes_transferred;
-	size_t sizePos = 2;
 
     ros::Time current_time_laser = ros::Time::now();
     ros::Time last_time_laser = ros::Time::now();
@@ -368,7 +367,7 @@ void running()
 
     // LaserScan
     scan_laser->header.frame_id = frame_id;
-    
+
     // PointCloud2 for 2D
     scan_2D.get()->is_dense = false;
     scan_2D.get()->header.frame_id = frame_id;
@@ -378,7 +377,7 @@ void running()
     scan_3D.get()->height = ImageHeight;
     scan_3D.get()->is_dense = false;
     scan_3D.get()->header.frame_id = frame_id;
-    
+
     boost::asio::io_service io;
     try
     {
@@ -404,8 +403,8 @@ void running()
             {
 				inProgress = 0x01;
 
-                result = laser.poll(VERSION_NUM);               
-                bytes_transferred = (int)(result[SIZE_MAX] << 8 | result[SIZE_MAX + 1]);
+                result = laser.poll(VERSION_NUM);
+                bytes_transferred = (int)(result[SCAN_MAX_SIZE] << 8 | result[SCAN_MAX_SIZE + 1]);
 
                 if (bytes_transferred > 0)
                 {
@@ -424,7 +423,7 @@ void running()
                                         {
                                             DATABUFFER_SIZE_2D = (int)(bufferPtr[DATA_1] << 8 | bufferPtr[DATA_2]) + PAYLOAD_SIZE;
                                             DATASET_SIZE_2D = (int)((float)(DATABUFFER_SIZE_2D - PAYLOAD_SIZE) / 2.0);
-        
+
                                             ANGLE_STEP_2D = (((double)BASE_ANGLE_2D / (double)(DATASET_SIZE_2D - 1)));
                                             ANGLE_POINT_2D = ((double)BASE_ANGLE_2D / 2) * RADIAN;
 
@@ -442,7 +441,7 @@ void running()
 
                                             scan_laser->ranges.resize(DATASET_SIZE_2D);
                                             scan_laser->intensities.resize(DATASET_SIZE_2D);
-                                            
+
                                             scan_2D.get()->points.resize(DATASET_SIZE_2D);
 
                                             buffer_setup_2d = true;
@@ -487,7 +486,7 @@ void running()
                                 }
                                 break;
                             case 0x00: // passed through header 1
-                                current_time_laser = ros::Time::now(); 
+                                current_time_laser = ros::Time::now();
                                 break;
                             default:
                                 break;
@@ -505,7 +504,7 @@ void running()
         delete cloudBuffer_2D;
         delete cloudSetBuffer_2D;
     }
-    catch (boost::system::system_error ex)
+    catch (const boost::system::system_error& ex)
     {
         ROS_ERROR("[Error] instantiating laser object. \
         Are you sure you have the correct port and baud rate? \
