@@ -33,6 +33,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_executable(cyglidar_pcl_publisher
     src/cyglidar_pcl_publisher.cpp
     src/cyglidar_pcl.cpp
+    src/PointCloudMaker.cpp
     src/CygbotParser.c)
 
 add_dependencies(cyglidar_pcl_publisher ${PROJECT_NAME}_generate_messages_cpp)

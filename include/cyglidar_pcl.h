@@ -17,36 +17,11 @@
 
 #define PAYLOAD_SIZE            6
 
-#define BASE_DEPTH_3D           3000
 #define BASE_DEPTH_2D           10000
 #define BASE_ANGLE_2D           120
 
 #define DISTANCE_MAX_2D         10000
 #define SCAN_MAX_SIZE           20000
-
-#define INVALID_DATA_2D         16000
-#define LOW_AMPLITUDE_2D        16001
-#define ADC_OVERFLOW_2D         16002
-#define SATURATION_VALUE_2D     16003
-#define BAD_PIXEL_2D            16004
-
-#define TRACKING_VALUE_3D       4001
-#define INVALID_DATA_3D         4080
-#define LOW_AMPLITUDE_3D        4081
-#define ADC_OVERFLOW_3D         4082
-#define SATURATION_VALUE_3D     4083
-#define INTERFERENCE_VALUE_3D   4087
-
-#define ADC_COL_R               173
-#define ADC_COL_G               216
-#define ADC_COL_B               230
-
-#define SAT_COL_R               128
-#define SAT_COL_G               0
-#define SAT_COL_B               128
-
-#define COLOR_MIN               0
-#define COLOR_MAX               255
 
 #define RIGHT_ANGLE             90
 #define HALF_ANGLE              180
@@ -78,20 +53,13 @@
 #define HEX_SIZE_TWO            8
 #define HEX_SIZE_FOUR           16
 
-namespace CameraIntrinsicParameters
+enum eRunMode
 {
-  const double cx = 78.0; // center point x
-  const double cy = 30.0; // center point y
-  const double f = 45.0;  // focal length f
-}
+  Mode2D,
+  Mode3D,
+  ModeDual
+};
 
-namespace LensDistortionCoefficients
-{
-  const double k1 = 0.059230986798945104;   // distortion coefficient k1
-  const double k2 = -0.013372466010805550;  // distortion coefficient k2
-}
-
-namespace cyglidar_pcl_driver {
 class cyglidar_pcl
 {
   public:
@@ -107,28 +75,30 @@ class cyglidar_pcl
       /**
         * @brief Default destructor
         */
-      ~cyglidar_pcl();
+      ~cyglidar_pcl()
+      {
+          serial_.close();
+      }
 
       /**
         * @brief Poll the laser to get a new scan. Block until a complete new scan is received or close is called.
-        * @param scan
         */
-      uint8_t* poll(int version);
+       uint16_t rvData(uint8_t* outputBuffer, const int BufferSize);
 
       /**
         * @brief Send a packet to run CygLiDAR
         */
-      void packet_run(int version);
+      void packet_run(const eRunMode mode);
 
       /**
         * @brief Send a packet to change a width of the pulse
         */
-      void packet_pulse(int version, int pulse_control, int duration);
+      void packet_duration(const eRunMode mode, const bool setAutoDuration, const uint16_t Duration);
 
       /**
         * @brief Send a packet to assign a frequency level
         */
-      void packet_frequency(int frequency);
+       void packet_frequency(const uint8_t channel);
 
       /**
         * @brief Print every element of the array after sending the packet
@@ -140,10 +110,12 @@ class cyglidar_pcl
         */
       void close();
   private:
+      uint8_t CommandBuffer[20];
+      uint8_t payloadBuffer[10];
+      void makeCommand(uint8_t* commandBuffer, uint8_t* Payload, const uint16_t payloadSize);
       std::string port_; ///< @brief The serial port which the driver belongs to
       uint32_t baud_rate_; ///< @brief The baud rate for the serial connection
       boost::asio::serial_port serial_; ///< @brief Actual serial port object for reading/writing to the lidar Scanner
-  };
-}
+};
 
 #endif // CYGLIDAR_H
