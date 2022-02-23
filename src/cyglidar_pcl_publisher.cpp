@@ -2,6 +2,8 @@
 #include "PointCloudMaker.h"
 #include "Constants_CygLiDAR_D1.h"
 
+int RunMode;        // select run mode {2D(0), 3D(1), Dual(2)}
+int setAutoDuration; // select Auto (1) or Fixed(0)
 int DATABUFFER_SIZE_2D, DATABUFFER_SIZE_3D, DATASET_SIZE_2D, DATASET_SIZE_3D;
 
 typedef pcl::PointCloud<pcl::PointXYZRGBA> PointXYZRGBA;
@@ -233,7 +235,7 @@ void cloudScatter_3D()
     }
 }
 
-int VERSION_NUM, FREQUENCY_LEVEL, PULSE_CONTROL, PULSE_DURATION;
+int FREQUENCY_LEVEL, PULSE_DURATION;
 void running()
 {
     // Create node handlers and local variables
@@ -249,15 +251,33 @@ void running()
     priv_nh.param("baud_rate", baud_rate, 3000000);
     priv_nh.param("frame_id", frame_id, std::string("laser_link"));
 
-    priv_nh.param("version", VERSION_NUM, 0);
+    priv_nh.param("run_mode", RunMode, 0);
     priv_nh.param("frequency", FREQUENCY_LEVEL, 0);
-    priv_nh.param("pulse_control", PULSE_CONTROL, 0);
+    priv_nh.param("set_auto_duration", setAutoDuration, 0);
     priv_nh.param("duration", PULSE_DURATION, 0);
+
+    // injection run mode
+    eRunMode LiDAR_RunMode;
+    switch(RunMode)
+    {
+        case 0:
+        LiDAR_RunMode = eRunMode::Mode2D;
+        break;
+        case 1:
+        LiDAR_RunMode = eRunMode::Mode3D;
+        break;
+        case 2:
+        LiDAR_RunMode = eRunMode::ModeDual;
+        break;
+        default:
+        LiDAR_RunMode = eRunMode::Mode3D;
+        break;
+    }
 
     // Check whether the values are applied properly
     ROS_INFO("FREQUENCY: %d (%x) / PULSE CONTROL: %d, DURATION: %d (%x)", \
     FREQUENCY_LEVEL, FREQUENCY_LEVEL, \
-    PULSE_CONTROL, PULSE_DURATION, PULSE_DURATION);
+    setAutoDuration, PULSE_DURATION, PULSE_DURATION);
 
     // Call the following function so as to store colors to draw 3D data
     colorBuffer();
@@ -309,11 +329,11 @@ void running()
         cyglidar_pcl laser(port, baud_rate, io);
 
         // Send packets
-        laser.packet_run(eRunMode::ModeDual);
+        laser.packet_run(LiDAR_RunMode);
         ros::Duration(1.0).sleep();         // sleep for a sec, by the duration
         laser.packet_frequency(FREQUENCY_LEVEL);
         ros::Duration(1.0).sleep();
-        laser.packet_duration(eRunMode::Mode3D, PULSE_CONTROL, PULSE_DURATION);
+        laser.packet_duration(LiDAR_RunMode, setAutoDuration, PULSE_DURATION);
 
         // Create variables used to organize data before drawing
         int DATA_1 = 4, DATA_2 = 3;
