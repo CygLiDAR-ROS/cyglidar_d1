@@ -216,12 +216,20 @@ void cloudScatter_3D()
                     }
                     else
                     {
+                        scan_3D.get()->points[BufferIndex].x = 0;
+                        scan_3D.get()->points[BufferIndex].y = 0;
+                        scan_3D.get()->points[BufferIndex].z = 0;
+                        scan_3D.get()->points[BufferIndex].rgb = 0;
                         scan_3D.get()->points[BufferIndex].a = 0;
                     }
                 }
                 else
                 {
-                    scan_3D.get()->points[BufferIndex].a = 0;
+                        scan_3D.get()->points[BufferIndex].x = 0;
+                        scan_3D.get()->points[BufferIndex].y = 0;
+                        scan_3D.get()->points[BufferIndex].z = 0;
+                        scan_3D.get()->points[BufferIndex].rgb = 0;
+                        scan_3D.get()->points[BufferIndex].a = 0;
                 }
 		    }
 	    }
@@ -380,7 +388,8 @@ void running()
                                     }
                                     if (buffer_setup_2d)
                                     {
-                                        last_time_laser = ros::Time::now();
+                                        current_time_laser = node->now() - rclcpp::Duration(0,15*1000*1000);
+                                        last_time_laser = current_time_laser;
                                         bufferPtr_2D = &bufferPtr[0];
                                         cloudScatter_2D(current_time_laser, last_time_laser, ANGLE_STEP_2D);
                                     }
