@@ -388,7 +388,7 @@ void running()
                                     }
                                     if (buffer_setup_2d)
                                     {
-                                        current_time_laser = node->now() - rclcpp::Duration(0,15*1000*1000);
+                                        current_time_laser = ros::Time::now() - ros::Duration(0.15);
                                         last_time_laser = current_time_laser;
                                         bufferPtr_2D = &bufferPtr[0];
                                         cloudScatter_2D(current_time_laser, last_time_laser, ANGLE_STEP_2D);
