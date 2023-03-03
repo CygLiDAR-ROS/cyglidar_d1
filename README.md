@@ -48,9 +48,14 @@ roslaunch cyglidar_d1 view_cyglidar.launch  (Run with Rviz)
 ### Note
 In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 
-##### Fixed Frame
+##### Frame ID
 ```bash
 /laser_link
+```
+
+##### Fixed Frame
+```bash
+/map
 ```
 
 ##### Cyglidar Topic List
