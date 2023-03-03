@@ -3,12 +3,11 @@
 #include "d_series_constant.h"
 #include "cyglidar_driver.h"
 
-#include <ros/ros.h>
+#include <chrono>
+#include <rclcpp/rclcpp.hpp>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/point_cloud.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 cyg_driver::TransformPayload TransformPayload;
 ColorRGB colorRGB;
@@ -20,8 +19,9 @@ float param_y[CygLiDARD1::Sensor::numPixel];
 float param_z[CygLiDARD1::Sensor::numPixel];
 PointCloudMaker pointcloud_3d(param_x, param_y, param_z, CygLiDARD1::Sensor::numPixel);
 
-void publishMessageLaserScan(ros::Publisher publisher_laserscan_, sensor_msgs::LaserScan::Ptr message_laserscan_,
-                             std::string frame_id_, ros::Time start_, double scan_time_, float *distance_value_array_buffer_2d_)
+void publishMessageLaserScan(rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr &publisher_laserscan_,
+                             sensor_msgs::msg::LaserScan::SharedPtr message_laserscan_, std::string frame_id_,
+                             rclcpp::Time start_, double scan_time_, float *distance_value_array_buffer_2d_)
 {
     message_laserscan_->header.frame_id = frame_id_;
     message_laserscan_->header.stamp = start_;
@@ -47,15 +47,16 @@ void publishMessageLaserScan(ros::Publisher publisher_laserscan_, sensor_msgs::L
             message_laserscan_->ranges[i] = std::numeric_limits<float>::infinity();
         }
     }
-    publisher_laserscan_.publish(message_laserscan_);
+    publisher_laserscan_->publish(*message_laserscan_);
 }
 
-void publishMessagePoint2D(ros::Publisher publisher_point_2d_, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_2d_,
-                           std::string frame_id_, float *distance_value_array_buffer_2d_)
+void publishMessagePoint2D(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr &publisher_point_2d_,
+                           pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud_2d_, std::string frame_id_,
+                           float *distance_value_array_buffer_2d_)
 {
-    message_point_2d_->header.frame_id = frame_id_;
-    message_point_2d_->is_dense = false;
-    message_point_2d_->points.resize(payload_data_length_2d);
+    pointcloud_2d_->header.frame_id = frame_id_;
+    pointcloud_2d_->is_dense = false;
+    pointcloud_2d_->points.resize(payload_data_length_2d);
 
     double angle_step_2d = static_cast<double>(CygLiDARD1::Sensor::AngleIncremet2D);
     float point_angle_var_2D = 0.0;
@@ -82,35 +83,39 @@ void publishMessagePoint2D(ros::Publisher publisher_point_2d_, pcl::PointCloud<p
         actualX = (tempX_2D * cos(rotation_angle)) + (tempY_2D * -sin(rotation_angle));
         actualY = (tempX_2D * sin(rotation_angle)) + (tempY_2D * cos(rotation_angle));
 
-        message_point_2d_->points[i].x = actualX * MM2M;
-        message_point_2d_->points[i].y = -actualY * MM2M;
-        message_point_2d_->points[i].z = 0.0;
+        pointcloud_2d_->points[i].x = actualX * MM2M;
+        pointcloud_2d_->points[i].y = -actualY * MM2M;
+        pointcloud_2d_->points[i].z = 0.0;
 
         if (distance_value_array_buffer_2d_[data_idx] < (float)(CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D))
         {
-            message_point_2d_->points[i].r = 255;
-            message_point_2d_->points[i].g = 255;
-            message_point_2d_->points[i].b = 0;
-            message_point_2d_->points[i].a = 255;
+            pointcloud_2d_->points[i].r = 255;
+            pointcloud_2d_->points[i].g = 255;
+            pointcloud_2d_->points[i].b = 0;
+            pointcloud_2d_->points[i].a = 255;
         }
         else
         {
             // Turn data invisible when it's greater than the maximum
-            message_point_2d_->points[i].a = 0;
+            pointcloud_2d_->points[i].a = 0;
         }
     }
-    pcl_conversions::toPCL(ros::Time::now(), message_point_2d_->header.stamp);
-    publisher_point_2d_.publish(message_point_2d_);
+    pcl_conversions::toPCL(rclcpp::Clock().now(), pointcloud_2d_->header.stamp);
+
+    sensor_msgs::msg::PointCloud2 message_point_cloud_2d;
+    pcl::toROSMsg(*pointcloud_2d_, message_point_cloud_2d);
+    publisher_point_2d_->publish(message_point_cloud_2d);
 }
 
-void publishMessagePoint3D(ros::Publisher publisher_point_3d_, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_3d_,
-                           std::string frame_id_, uint16_t distance_value_array_buffer_3d_[])
+void publishMessagePoint3D(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr &publisher_point_3d_,
+                           pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud_3d_, std::string frame_id_,
+                           uint16_t distance_value_array_buffer_3d_[])
 {
-    message_point_3d_->header.frame_id = frame_id_;
-    message_point_3d_->is_dense = false;
-    message_point_3d_->width = CygLiDARD1::Sensor::Width;
-    message_point_3d_->height = CygLiDARD1::Sensor::Height;
-    message_point_3d_->points.resize(payload_data_length_3d);
+    pointcloud_3d_->header.frame_id = frame_id_;
+    pointcloud_3d_->is_dense = false;
+    pointcloud_3d_->width = CygLiDARD1::Sensor::Width;
+    pointcloud_3d_->height = CygLiDARD1::Sensor::Height;
+    pointcloud_3d_->points.resize(payload_data_length_3d);
 
     int buffer_index = 0;
     float position_x, position_y, position_z;
@@ -125,34 +130,37 @@ void publishMessagePoint3D(ros::Publisher publisher_point_3d_, pcl::PointCloud<p
             {
                 if(pointcloud_3d.calcPointCloud(distance, buffer_index, position_x, position_y, position_z) == eCalculationStatus::SUCCESS)
                 {
-                    message_point_3d_->points[buffer_index].x = position_z * MM2M;
-                    message_point_3d_->points[buffer_index].y = -position_x * MM2M;
-                    message_point_3d_->points[buffer_index].z = -position_y * MM2M;
+                    pointcloud_3d_->points[buffer_index].x = position_z * MM2M;
+                    pointcloud_3d_->points[buffer_index].y = -position_x * MM2M;
+                    pointcloud_3d_->points[buffer_index].z = -position_y * MM2M;
                     uint32_t color_change_with_height = colorRGB.color_map[((int)position_y / 2) % colorRGB.color_map.size()];
-                    message_point_3d_->points[buffer_index].rgb = *reinterpret_cast<float*>(&color_change_with_height);
-                    message_point_3d_->points[buffer_index].a = 255;
+                    pointcloud_3d_->points[buffer_index].rgb = *reinterpret_cast<float*>(&color_change_with_height);
+                    pointcloud_3d_->points[buffer_index].a = 255;
                 }
                 else
                 {
-                    message_point_3d_->points[buffer_index].x = 0;
-                    message_point_3d_->points[buffer_index].y = 0;
-                    message_point_3d_->points[buffer_index].z = 0;
-                    message_point_3d_->points[buffer_index].rgb = 0;
-                    message_point_3d_->points[buffer_index].a = 0;
+                    pointcloud_3d_->points[buffer_index].x = 0;
+                    pointcloud_3d_->points[buffer_index].y = 0;
+                    pointcloud_3d_->points[buffer_index].z = 0;
+                    pointcloud_3d_->points[buffer_index].rgb = 0;
+                    pointcloud_3d_->points[buffer_index].a = 0;
                 }
             }
             else
             {
-                    message_point_3d_->points[buffer_index].x = 0;
-                    message_point_3d_->points[buffer_index].y = 0;
-                    message_point_3d_->points[buffer_index].z = 0;
-                    message_point_3d_->points[buffer_index].rgb = 0;
-                    message_point_3d_->points[buffer_index].a = 0;
+                    pointcloud_3d_->points[buffer_index].x = 0;
+                    pointcloud_3d_->points[buffer_index].y = 0;
+                    pointcloud_3d_->points[buffer_index].z = 0;
+                    pointcloud_3d_->points[buffer_index].rgb = 0;
+                    pointcloud_3d_->points[buffer_index].a = 0;
             }
         }
     }
-    pcl_conversions::toPCL(ros::Time::now(), message_point_3d_->header.stamp);
-    publisher_point_3d_.publish(message_point_3d_);
+    pcl_conversions::toPCL(rclcpp::Clock().now(), pointcloud_3d_->header.stamp);
+
+    sensor_msgs::msg::PointCloud2 message_point_cloud_3d;
+    pcl::toROSMsg(*pointcloud_3d_, message_point_cloud_3d);
+    publisher_point_3d_->publish(message_point_cloud_3d);
 }
 
 int main(int argc, char **argv)
@@ -164,20 +172,26 @@ int main(int argc, char **argv)
     int duration_mode;
     int duration_value;
     int frequency_channel;
-    int sensitivity;
 
-    ros::init(argc, argv, "Cyglidar_Node");
+    rclcpp::init(argc, argv);
 
-    ros::NodeHandle nh;
-    ros::NodeHandle priv_nh("~");
-    priv_nh.param<std::string>("port", port, "/dev/ttyUSB0");
-    priv_nh.param<int>("baud_rate", baud_rate, 3000000);
-    priv_nh.param<std::string>("frame_id", frame_id, "laser_link");
-    priv_nh.param<int>("run_mode", run_mode, 2);
-    priv_nh.param<int>("duration_mode", duration_mode, PULSE_AUTO);
-    priv_nh.param<int>("duration_value", duration_value, 10000);
-    priv_nh.param<int>("frequency_channel", frequency_channel, 0);
-    priv_nh.param<int>("sensitivity", sensitivity, 80);
+    auto node = rclcpp::Node::make_shared("CyglidarNode");
+
+    node->declare_parameter("port");
+    node->declare_parameter("baud_rate");
+    node->declare_parameter("frame_id");
+    node->declare_parameter("run_mode");
+    node->declare_parameter("duration_mode");
+    node->declare_parameter("duration_value");
+    node->declare_parameter("frequency_channel");
+
+    node->get_parameter_or<std::string>("port", port, "/dev/ttyUSB0");
+    node->get_parameter_or<int>("baud_rate", baud_rate, 3000000);
+    node->get_parameter_or<std::string>("frame_id", frame_id, "laser_link");
+    node->get_parameter_or<int>("run_mode", run_mode, 2);
+    node->get_parameter_or<int>("duration_mode", duration_mode, PULSE_AUTO);
+    node->get_parameter_or<int>("duration_value", duration_value, 10000);
+    node->get_parameter_or<int>("frequency_channel", frequency_channel, 0);
 
     bool ready_publish = false;
     bool buffer_setup_2d = false;
@@ -210,28 +224,28 @@ int main(int argc, char **argv)
         // Open the port
         cyglidar_pcl cyglidar_serial_port(port, baud_rate, io);
 
-        ros::Publisher publisher_laserscan = nh.advertise<sensor_msgs::LaserScan>("scan_laser", SCAN_MAX_SIZE);
-        ros::Publisher publisher_point_2d   = nh.advertise<sensor_msgs::PointCloud2>("scan_2D", 1);
-        ros::Publisher publisher_point_3d   = nh.advertise<sensor_msgs::PointCloud2>("scan_3D", 1);
+        auto publisher_laserscan = node->create_publisher<sensor_msgs::msg::LaserScan>("scan_laser", SCAN_MAX_SIZE);
+        auto publisher_point_2d  = node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_2D", 1);
+        auto publisher_point_3d  = node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_3D", 1);
 
-        ROS_INFO("%s", cyglidar_serial_port.requestRunMode(static_cast<eRunMode>(run_mode)).c_str());
+        RCLCPP_INFO(node->get_logger(), "%s", cyglidar_serial_port.requestRunMode(static_cast<eRunMode>(run_mode)).c_str());
 
-        ROS_INFO("[PACKET UPDATED] PULSE DURATION : %d", duration_value);
+        RCLCPP_INFO(node->get_logger(), "[PACKET UPDATED] PULSE DURATION : %d", duration_value);
         cyglidar_serial_port.requestDurationControl(static_cast<eRunMode>(run_mode), duration_mode, duration_value);
-        ros::Duration(1.0).sleep(); 
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         // sleep for a sec, by the duration
 
-        ROS_INFO("[PACKET UPDATED] FREQUENCY CH.%d", frequency_channel);
+        RCLCPP_INFO(node->get_logger(), "[PACKET UPDATED] FREQUENCY CH.%d", frequency_channel);
         cyglidar_serial_port.requestFrequencyChannel(frequency_channel);
 
-	    sensor_msgs::LaserScan::Ptr             scan_laser(new sensor_msgs::LaserScan);
+        auto scan_laser = std::make_shared<sensor_msgs::msg::LaserScan>();
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-        while (ros::ok())
+        while (rclcpp::ok())
         {
-            ros::Time scan_start_time;
-            ros::Time scan_end_time;
+            rclcpp::Time scan_start_time;
+            rclcpp::Time scan_end_time;
             double scan_duration;
 
             uint8_t packet_structure[SCAN_MAX_SIZE];
@@ -257,9 +271,9 @@ int main(int argc, char **argv)
                                 }
                                 if (buffer_setup_2d)
                                 {
-                                    scan_start_time = ros::Time::now() - ros::Duration(0.00015); //sec
+                                    scan_start_time = node->now() - rclcpp::Duration(0, 150000); //nanosec
                                     scan_end_time = scan_start_time;
-                                    scan_duration = (scan_start_time - scan_end_time).toSec();
+                                    scan_duration = (scan_start_time - scan_end_time).seconds();
 
                                     payload_data_buffer_2d = &total_packet_data[PAYLOAD_DATA];
 
@@ -321,13 +335,13 @@ int main(int argc, char **argv)
                     }
                     else
                     {
-                        scan_start_time = ros::Time::now();
+                        scan_start_time = node->now();
                     }
                 }
             }
         }
         cyglidar_serial_port.close();
-        ROS_INFO("PACKET UPDATED : STOP");
+        RCLCPP_INFO(node->get_logger(), "PACKET UPDATED : STOP");
         delete total_packet_data;
         delete payload_data_buffer_2d;
         delete distance_value_array_buffer_2d;
@@ -338,7 +352,7 @@ int main(int argc, char **argv)
     }
     catch (const boost::system::system_error& ex)
     {
-        ROS_ERROR("[Error] : An exception was thrown: %s", ex.what());
+        RCLCPP_ERROR(node->get_logger(), "[Error] : An exception was thrown: %s", ex.what());
         return -1;
     }
 }

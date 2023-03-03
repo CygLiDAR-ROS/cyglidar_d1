@@ -3,8 +3,8 @@
 #include "d_series_constant.h"
 
 namespace cyg_driver
-{       
-    // Convert 2D, 3D rawdata to measured distance appending both separated data (LSB and MSB) 
+{        
+    // Convert 2D, 3D rawdata to measured distance appending both separated data (LSB and MSB)
     void TransformPayload::getDistanceArray2D(uint8_t *PAYLOAD_DATA_BUFFER_2D, int Packet_Total_Length_2D, float *Distance_ValueBuffer_2D)
     {
         int DistanceCount_2D = 0;
@@ -20,7 +20,6 @@ namespace cyg_driver
         }
     }
 
-    
     void TransformPayload::getDistanceArray3D(uint8_t *PAYLOAD_DATA_BUFFER_3D, int Packet_Total_Length_3D, uint16_t *DistanceValueArray_Buffer_3D)
     {
         int distanceCnt_3D = 0;

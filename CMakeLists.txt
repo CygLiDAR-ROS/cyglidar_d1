@@ -1,57 +1,63 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 
-set(PROJECTNAME "cyglidar_d1")
-project(${PROJECTNAME} CXX C)
+project(cyglidar_d1)
+
+if(NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 14)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 set(CYGLIDAR_SDK_PATH "./sdk/")
-set(extra_flags -std=c++11 -g -Werror -Wall -Wextra)
-set(CMAKE_CXX_FLGAS "-std=c++11 -03")
-set(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
-
-add_compile_options(-std=c++14 -g)
-add_definitions(${COMPILE_FLAGS} ${PCL_DEFINITIONS})
-add_definitions(-Wall -O2)
 
 FILE(GLOB CYGLIDAR_D_SRC
     "${CYGLIDAR_SDK_PATH}/src/*.cpp"
     "${CYGLIDAR_SDK_PATH}/src/*.c"
 )
 
-find_package(catkin REQUIRED COMPONENTS
-  std_msgs
-  roscpp
-  sensor_msgs
-)
+find_package(ament_cmake REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
-find_package(PCL 1.2 REQUIRED)
+find_package(PCL REQUIRED QUIET COMPONENTS core features filters io segmentation surface)
 
-include_directories(
-    ${CYGLIDAR_SDK_PATH}/include
-    ${CYGLIDAR_SDK_PATH}/src
-    ${catkin_INCLUDE_DIRS}
-    ${PCL_INCLUDE_DIRS}
-)
-
-catkin_package()
+include_directories(${CYGLIDAR_SDK_PATH}/include)
 
 add_library(${PROJECT_NAME} ${CYGLIDAR_SDK_PATH}/src/cygparser.c)
 
 link_directories(${PCL_LIBRARY_DIRS})
 
-add_executable(CyglidarNode src/cyglidar_node.cpp ${CYGLIDAR_D_SRC})
-
-add_dependencies(CyglidarNode ${PROJECT_NAME}_generate_messages_cpp)
-
-target_link_libraries(CyglidarNode
-    ${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-    ${PCL_LIBRARIES})
-
-install(TARGETS CyglidarNode
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+add_executable(CyglidarNode
+    src/cyglidar_node.cpp
+    ${CYGLIDAR_D_SRC}
 )
 
-install(DIRECTORY launch sdk rviz
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+ament_target_dependencies(CyglidarNode
+    rclcpp
+    std_msgs
+    sensor_msgs
+    Boost
+    PCL
+)
+
+install(TARGETS CyglidarNode
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY ${CYGLIDAR_SDK_PATH}/include/
+    DESTINATION include)
+
+install(
+    DIRECTORY launch rviz
+    DESTINATION share/${PROJECT_NAME}/
+)
+
+ament_export_include_directories(include)
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(Boost)
+ament_export_dependencies(PCL)
+ament_package()
