@@ -5,10 +5,23 @@ For more details in CygLiDAR, please visit http://www.cygbot.com
 ## How to use this package
 
 ### Preparation
-1) Clone this repository to your catkin's workspace
-2) Run catkin_make
+1. Clone this repository to your catkin's workspace
+2.  Run catkin_make
+```bash
+mkdir -p ~/cyglidar_ws/src/
+cd ~/cyglidar_ws/src/
+git clone https://github.com/CygLiDAR-ROS/cyglidar_d1.git
+catkin_make
+```
+* When CMake Error Occured as below
+>pcl_conversionsConfig.cmake / pcl_conversions-config.cmake
+>pcl_rosConfig.cmake / pcl_ros-config.cmake
+```bash
+sudo apt install ros-{noetic/melodic}-pcl-conversions
+sudo apt install ros-{noetic/melodic}-pcl-ros
+```
 
-### Set-Up
+### Installation Udev
 Install the udev rule
 ```bash
 roscd cyglidar_d1
@@ -17,27 +30,21 @@ chmod +x create_udev_rules.sh
 ./create_udev_rules.sh
 ```
 
-### Parameters
-In cyglidar.launch, the version number can be switched to 0, 1 and 2 for 2D, 3D and 2D/3D respectively as below:
+### Parameters in 'cyglidar.launch' File
+In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D and Dual(2D/3D)
 
-2D)
+And the others can be switched respectively as below:
 <h1 align="left">
-  <img src="screenshots/param_2d.png" width="600"/>
+  <img src="screenshots/launch_file_parameter.png" width="600"/>
 </h1>
 
-3D)
+### Run CyglidarNode and View in the Rviz
 <h1 align="left">
-  <img src="screenshots/param_3d.png" width="600"/>
+  <img src="screenshots/launch_file_rviz.png" width="600"/>
 </h1>
-
-2D/3D)
-<h1 align="left">
-  <img src="screenshots/param_2d3d.png" width="600"/>
-</h1>
-
-### Run
 ```bash
 roslaunch cyglidar_d1 cyglidar.launch
+roslaunch cyglidar_d1 view_cyglidar.launch  (Run with Rviz)
 ```
 
 ### Note
@@ -48,9 +55,9 @@ In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 /laser_link
 ```
 
-##### Topic
+##### Cyglidar Topic List
 ```bash
-/scan_laser
-/scan_2D
-/scan_3D
+/scan_laser (LaserScan)
+/scan_2D    (PointCloud XYZRGBA)
+/scan_3D    (PointCloud XYZRGBA)
 ```

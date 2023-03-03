@@ -1,0 +1,5 @@
+<launch>
+  <include file="$(find cyglidar_d1)/launch/cyglidar.launch"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find cyglidar_d1)/rviz/cyglidar_config.rviz"/>
+</launch>
