@@ -5,8 +5,6 @@ For more details in CygLiDAR, please visit http://www.cygbot.com
 ## How to use this package
 
 ### Preparation
-1. Clone this repository to your catkin's workspace
-2.  Run catkin_make
 ```bash
 mkdir -p ~/cyglidar_ws/src/
 cd ~/cyglidar_ws/src/
