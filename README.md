@@ -35,12 +35,12 @@ In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D
 
 And the others can be switched respectively as below:
 <h1 align="left">
-  <img src="screenshots/launch_file_parameter.png" width="600"/>
+  <img src="screenshots/launch_file_parameter.png" width="800"/>
 </h1>
 
 ### Run CyglidarNode and View in the Rviz
 <h1 align="left">
-  <img src="screenshots/launch_file_rviz.png" width="600"/>
+  <img src="screenshots/launch_file_rviz.png" width="800"/>
 </h1>
 ```bash
 roslaunch cyglidar_d1 cyglidar.launch
