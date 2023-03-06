@@ -38,7 +38,7 @@ void PointCloudMaker::initLensTransform(const float sensor_point_size_MM, const 
 
 			float angleRad = angleGrad * 3.14159265f / 180.0f;
 
-			float rp = sqrtf((c * c) + (r * r));
+			float rp  = sqrtf((c * c) + (r * r));
 			float rUA = sinf(angleRad);
 
 			table_x[x + (y * CygLiDARD1::Sensor::Width)] = c * rUA / rp;

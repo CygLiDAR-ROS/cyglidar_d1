@@ -10,7 +10,7 @@ enum ePacketCheckList packet_check_list = Header1;
 
 void parsePayload(uint8_t *buffer, int size, CygPayload *payload);
 
-inline void initPacket(uint8_t packet_data)
+extern inline void initPacket(uint8_t packet_data)
 {
 	if (packet_data == NORMAL_MODE)
 	{
@@ -95,7 +95,7 @@ uint8_t CygParser(uint8_t *command_buffer, uint8_t packet_data)
 		break;
 	case Length2:
 		command_buffer[POS_LENGTH_2] = packet_data;
-		payload_size = ((command_buffer[POS_LENGTH_2] << 8) & 0xff00) | (command_buffer[POS_LENGTH_1] & 0x00ff);
+		payload_size = ((command_buffer[POS_LENGTH_2] << 8) & 0xff00) | (command_buffer[POS_LENGTH_1] & 0x00ff); // 길이 조건의 유연성도 주면 좋고? rplidar의 패킷 데이터와 비교해보자
 		packet_check_list = Payload_Header;
 		break;
 	case Payload_Header:
@@ -124,7 +124,7 @@ uint8_t CygParser(uint8_t *command_buffer, uint8_t packet_data)
 		if (CPC == packet_data)
 		{
 			command_buffer[POS_PAYLOAD_HEADER + payload_size] = packet_data;
-			return 1; 
+			return 1;
 			// Succeed packet parsing
 		}
 		break;
