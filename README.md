@@ -9,6 +9,7 @@ For more details in CygLiDAR, please visit http://www.cygbot.com
 mkdir -p ~/cyglidar_ws/src/
 cd ~/cyglidar_ws/src/
 git clone https://github.com/CygLiDAR-ROS/cyglidar_d1.git
+cd ..
 catkin_make
 ```
 * When CMake Error Occured as below
