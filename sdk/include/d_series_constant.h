@@ -41,9 +41,9 @@ namespace CygLiDARD1
 				const uint16_t Invalid       = 16000;
 				const uint16_t LowAmplitude  = 16001;
 				const uint16_t ADCOverflow   = 16002;
-				const uint16_t Saturation	 = 16003;
-				const uint16_t BadPixel		 = 16004;
-				const uint16_t LowDCS 		 = 16005;
+				const uint16_t Saturation    = 16003;
+				const uint16_t BadPixel	     = 16004;
+				const uint16_t LowDCS 	     = 16005;
 				const uint16_t Interference  = 16007;
 				const uint16_t EdgeFilterd   = 16008;
 			}
@@ -60,7 +60,7 @@ namespace CygLiDARD1
 				const uint16_t ADCOverflow   = 4082;
 				const uint16_t Saturation    = 4083;
 				const uint16_t BadPixel      = 4084;
-				const uint16_t LowDCS 		 = 4085;
+				const uint16_t LowDCS 	     = 4085;
 				const uint16_t Interference  = 4086;
 				const uint16_t EdgeFilterd   = 4087;
 			}
