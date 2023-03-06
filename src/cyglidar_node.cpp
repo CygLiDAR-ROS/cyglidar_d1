@@ -181,8 +181,6 @@ int main(int argc, char **argv)
     int packet_total_length_3d = 0;
     int payload_data_length_3d = 0;
 
-    uint8_t *total_packet_data;
-
     uint8_t  *payload_data_buffer_2d = 0;
     uint16_t *distance_value_array_buffer_2d = 0;
     uint8_t  *payload_data_buffer_3d = 0;
@@ -198,7 +196,7 @@ int main(int argc, char **argv)
     pointcloud_3d.initLensTransform(CygLiDARD1::Sensor::PixelRealSize, CygLiDARD1::Sensor::Width, CygLiDARD1::Sensor::Height,
                                     CygLiDARD1::Parameter::OffsetCenterPoint_x, CygLiDARD1::Parameter::OffsetCenterPoint_y);
 
-    total_packet_data = new uint8_t[SCAN_MAX_SIZE];
+    uint8_t total_packet_data[SCAN_MAX_SIZE];
 
     boost::asio::io_service io;
 
@@ -221,7 +219,7 @@ int main(int argc, char **argv)
         ROS_INFO("[PACKET UPDATED] FREQUENCY CH.%d", frequency_channel);
         cyglidar_serial_port.requestFrequencyChannel(frequency_channel);
 
-	    sensor_msgs::LaserScan::Ptr             scan_laser(new sensor_msgs::LaserScan);
+	sensor_msgs::LaserScan::Ptr             scan_laser(new sensor_msgs::LaserScan);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
@@ -240,59 +238,58 @@ int main(int argc, char **argv)
                 {
                     if(CygParser(total_packet_data, packet_structure[i]) == CHECKSUM_PASSED)
                     {
-                        switch (total_packet_data[PAYLOAD_HEADER])
+                        if (total_packet_data[PAYLOAD_HEADER] == PACKET_HEADER_2D)
                         {
-                            case PACKET_HEADER_2D:
-                                if (!complete_set_buffer_2d)
-                                {// init 2d variable
-                                    packet_total_length_2d = (int)(total_packet_data[PAYLOAD_LENGTH_MSB] << 8 | total_packet_data[PAYLOAD_LENGTH_LSB]) + PAYLOAD_SIZE;
-                                    payload_data_length_2d = (int)((float)(packet_total_length_2d - PAYLOAD_SIZE) / 2.0);
-                                    distance_value_array_buffer_2d = new uint16_t[payload_data_length_2d];
-                                    payload_data_buffer_2d = new uint8_t[packet_total_length_2d - PAYLOAD_SIZE];
+                            if (!complete_set_buffer_2d)
+                            {// init 2d variable
+                                packet_total_length_2d = (int)(total_packet_data[PAYLOAD_LENGTH_MSB] << 8 | total_packet_data[PAYLOAD_LENGTH_LSB]) + PAYLOAD_SIZE;
+                                payload_data_length_2d = (int)((float)(packet_total_length_2d - PAYLOAD_SIZE) / 2.0);
+                                distance_value_array_buffer_2d = new uint16_t[payload_data_length_2d];
+                                payload_data_buffer_2d = new uint8_t[packet_total_length_2d - PAYLOAD_SIZE];
 
-                                    complete_set_buffer_2d = true;
-                                }
-                                if (complete_set_buffer_2d)
+                                complete_set_buffer_2d = true;
+                            }
+                            if (complete_set_buffer_2d)
+                            {
+                                scan_start_time = ros::Time::now() - ros::Duration(0.00015); //sec
+                                scan_end_time = scan_start_time;
+                                scan_duration = (scan_start_time - scan_end_time).toSec();
+
+                                payload_data_buffer_2d = &total_packet_data[PAYLOAD_DATA];
+
+                                if (!ready_publish)
                                 {
-                                    scan_start_time = ros::Time::now() - ros::Duration(0.00015); //sec
-                                    scan_end_time = scan_start_time;
-                                    scan_duration = (scan_start_time - scan_end_time).toSec();
-
-                                    payload_data_buffer_2d = &total_packet_data[PAYLOAD_DATA];
-
-                                    if (!ready_publish)
-                                    {
-                                        ready_publish = true;
-                                        TransformPayload.getDistanceArray2D(payload_data_buffer_2d, packet_total_length_2d, distance_value_array_buffer_2d);
-                                        publishMessageLaserScan(publisher_laserscan, scan_laser, frame_id, scan_start_time, scan_duration, payload_data_length_2d, distance_value_array_buffer_2d);
-                                        publishMessagePoint2D(publisher_point_2d, scan_2D, frame_id, payload_data_length_2d, distance_value_array_buffer_2d);
-                                    }
-                                    ready_publish = false;
+                                    ready_publish = true;
+                                    TransformPayload.getDistanceArray2D(payload_data_buffer_2d, packet_total_length_2d, distance_value_array_buffer_2d);
+                                    publishMessageLaserScan(publisher_laserscan, scan_laser, frame_id, scan_start_time, scan_duration, payload_data_length_2d, distance_value_array_buffer_2d);
+                                    publishMessagePoint2D(publisher_point_2d, scan_2D, frame_id, payload_data_length_2d, distance_value_array_buffer_2d);
                                 }
-                                break;
-                            case PACKET_HEADER_3D:
-                                if (!complete_set_buffer_3d)
-                                {// init 3d variable
-                                    packet_total_length_3d = (int)(total_packet_data[PAYLOAD_LENGTH_MSB] << 8 | total_packet_data[PAYLOAD_LENGTH_LSB]) + PAYLOAD_SIZE;
-                                    float byteset_ratio_3d = (2.0 / 3.0);
-                                    payload_data_length_3d = (int)((float)(packet_total_length_3d - PAYLOAD_SIZE) * byteset_ratio_3d);
-                                    payload_data_buffer_3d = new uint8_t[packet_total_length_3d - PAYLOAD_SIZE];
+                                ready_publish = false;
+                            }
+                        }
+                        else if (total_packet_data[PAYLOAD_HEADER] == PACKET_HEADER_3D)
+                        {
+                            if (!complete_set_buffer_3d)
+                            {// init 3d variable
+                                packet_total_length_3d = (int)(total_packet_data[PAYLOAD_LENGTH_MSB] << 8 | total_packet_data[PAYLOAD_LENGTH_LSB]) + PAYLOAD_SIZE;
+                                float byteset_ratio_3d = (2.0 / 3.0);
+                                payload_data_length_3d = (int)((float)(packet_total_length_3d - PAYLOAD_SIZE) * byteset_ratio_3d);
+                                payload_data_buffer_3d = new uint8_t[packet_total_length_3d - PAYLOAD_SIZE];
 
-                                    complete_set_buffer_3d = true;
-                                }
-                                if (complete_set_buffer_3d)
+                                complete_set_buffer_3d = true;
+                            }
+                            if (complete_set_buffer_3d)
+                            {
+                                payload_data_buffer_3d = &total_packet_data[PAYLOAD_DATA];
+
+                                if (!ready_publish)
                                 {
-                                    payload_data_buffer_3d = &total_packet_data[PAYLOAD_DATA];
-
-                                    if (!ready_publish)
-                                    {
-                                        ready_publish = true;
-                                        TransformPayload.getDistanceArray3D(payload_data_buffer_3d, packet_total_length_3d, distance_value_array_buffer_3d);
-                                        publishMessagePoint3D(publisher_point_3d, scan_3D, frame_id, payload_data_length_3d, pointcloud_3d, distance_value_array_buffer_3d);
-                                    }
-                                    ready_publish = false;
+                                    ready_publish = true;
+                                    TransformPayload.getDistanceArray3D(payload_data_buffer_3d, packet_total_length_3d, distance_value_array_buffer_3d);
+                                    publishMessagePoint3D(publisher_point_3d, scan_3D, frame_id, payload_data_length_3d, pointcloud_3d, distance_value_array_buffer_3d);
                                 }
-                                break;
+                                ready_publish = false;
+                            }
                         }
                     }
                     else
