@@ -40,6 +40,7 @@ And the others can be switched respectively as below:
 <h1 align="left">
   <img src="screenshots/launch_file_rviz.png" width="800"/>
 </h1>
+
 ```bash
 roslaunch cyglidar_d1 cyglidar.launch
 roslaunch cyglidar_d1 view_cyglidar.launch  (Run with Rviz)
