@@ -32,7 +32,7 @@ ros2 launch cyglidar_d1 cyglidar.launch.py
 ros2 launch cyglidar_d1 view_cyglidar.launch.py  (Run with Rviz)
 ```
 * When CyglidarNode Error Occured
->[Error] : [Error] : An exception was thrown : open : Permission denied
+>[Error] : An exception was thrown [open : Permission denied]
 
 ```bash
 sudo chmod 777 /dev/ttyUSB0
