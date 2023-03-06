@@ -32,11 +32,17 @@ And the others can be switched respectively as below:
 ros2 launch cyglidar_d1 cyglidar.launch.py
 ros2 launch cyglidar_d1 view_cyglidar.launch.py  (Run with Rviz)
 ```
-* When CyglidarNode Error Occured
+#1 When CyglidarNode Error Occured
 >[Error] : An exception was thrown [open : Permission denied]
 
 ```bash
 sudo chmod 777 /dev/ttyUSB0
+```
+
+#2 When CyglidarNode Error Occured
+>[RTPS_QOS_CHECK Error] INCORRECT TOPIC QOS (rt/scan_laser): depth must be <= max_samples -> Function checkQos
+```bash
+echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc
 ```
 
 ### Note
