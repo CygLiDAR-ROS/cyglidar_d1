@@ -10,8 +10,8 @@ extern "C" {
 
 // Packet position
 #define POS_CYGBOT_HEADER		0
-#define POS_DEVICE				1
-#define POS_ID					2
+#define POS_DEVICE			1
+#define POS_ID				2
 #define POS_LENGTH_1			3
 #define POS_LENGTH_2			4
 #define POS_PAYLOAD_HEADER		5
@@ -32,11 +32,11 @@ extern "C" {
 #define PRODUCT_CODE 			0x77
 
 // Header3
-#define DEFAULT_ID 				0xFF
+#define DEFAULT_ID 			0xFF
 
 #define CHECKSUM_PASSED 		1
 
-#define HEADER_LENGTH_SIZE  	5
+#define HEADER_LENGTH_SIZE  		5
 
 	enum eCommandMode {
 		IdleMode = 0,
