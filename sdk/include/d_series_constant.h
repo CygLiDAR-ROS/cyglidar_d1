@@ -14,13 +14,13 @@ namespace CygLiDARD1
 {
 	namespace Sensor
 	{
-		const float PixelRealSize   = 0.02f;				// unit : mm
+		const float PixelRealSize   = 0.02f;			// unit : mm
 		const float HorizontalAngle = 120.0f;			// unit : degree
 		const float AngleIncremet2D = 0.75f;			// unit : degree
-		const int DataSize2D = 161;							// 	161 => HorizontalAngle / AngleIncremet2D
-		const int32_t Width  = 160;								// unit : pixel
-		const int32_t Height = 60;								// unit : pixel
-		const int32_t numPixel = Width * Height;	// unit : pixel
+		const int DataSize2D = 161;						// 161 => HorizontalAngle / AngleIncremet2D
+		const int32_t Width  = 160;						// unit : pixel
+		const int32_t Height = 60;						// unit : pixel
+		const int32_t numPixel = Width * Height;		// unit : pixel
 	}
 
 	namespace Parameter
@@ -41,9 +41,9 @@ namespace CygLiDARD1
 				const uint16_t Invalid       = 16000;
 				const uint16_t LowAmplitude  = 16001;
 				const uint16_t ADCOverflow   = 16002;
-				const uint16_t Saturation		 = 16003;
-				const uint16_t BadPixel			 = 16004;
-				const uint16_t LowDCS 			 = 16005;
+				const uint16_t Saturation	 = 16003;
+				const uint16_t BadPixel		 = 16004;
+				const uint16_t LowDCS 		 = 16005;
 				const uint16_t Interference  = 16007;
 				const uint16_t EdgeFilterd   = 16008;
 			}
@@ -60,7 +60,7 @@ namespace CygLiDARD1
 				const uint16_t ADCOverflow   = 4082;
 				const uint16_t Saturation    = 4083;
 				const uint16_t BadPixel      = 4084;
-				const uint16_t LowDCS 			 = 4085;
+				const uint16_t LowDCS 		 = 4085;
 				const uint16_t Interference  = 4086;
 				const uint16_t EdgeFilterd   = 4087;
 			}
@@ -75,7 +75,7 @@ namespace CygLiDARD1
 
 	namespace Util
 	{
-		const float PI = 3.14159265f;				  		// pi
+		const float PI = 3.14159265f;				  // pi
 		const float MM_To_M = 0.001f;		          // length mm to m
 		const float ToRadian = PI / 180.0f;
 	}
@@ -84,7 +84,7 @@ namespace CygLiDARD1
 	{
 		namespace Header
 		{
-			const uint8_t HeaderTotalSize = 5;	     // {header1, header2, header3, payloadlength1, payloadlengt2}
+			const uint8_t HeaderTotalSize = 5; // {header1, header2, header3, payloadlength1, payloadlengt2}
 			const uint8_t Header1 = 0x5A;
 			const uint8_t Header2 = 0x77;
 			const uint8_t Header3 = 0xFF;
@@ -97,8 +97,8 @@ namespace CygLiDARD1
 				const uint32_t PayloadTotalSize = 2;
 				namespace PayloadHeader
 				{
-					const uint8_t Run2D 	= 0x01;
-					const uint8_t Run3D 	= 0x08;
+					const uint8_t Run2D   = 0x01;
+					const uint8_t Run3D   = 0x08;
 					const uint8_t RunDual = 0x07;
 				}
 				namespace PayloadData

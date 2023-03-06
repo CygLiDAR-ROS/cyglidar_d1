@@ -41,7 +41,6 @@ std::string cyglidar_pcl::requestRunMode(const eRunMode run_mode)
             break;
     }
     payload_buffer[1] = 0x00;
-
     makeCommand(command_buffer, payload_buffer, Payload::Run::PayloadTotalSize);
 
     uint16_t runmode_command_totalsize = (Payload::Run::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
