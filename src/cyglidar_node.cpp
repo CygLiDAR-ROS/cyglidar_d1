@@ -195,8 +195,6 @@ int main(int argc, char **argv)
     int packet_total_length_3d = 0;
     int payload_data_length_3d = 0;
 
-    uint8_t *total_packet_data;
-
     uint8_t  *payload_data_buffer_2d = 0;
     uint16_t *distance_value_array_buffer_2d = 0;
     uint8_t  *payload_data_buffer_3d = 0;
