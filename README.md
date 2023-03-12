@@ -39,12 +39,6 @@ ros2 launch cyglidar_d1 view_cyglidar.launch.py  (Run with Rviz)
 sudo chmod 777 /dev/ttyUSB0
 ```
 
-#2 When CyglidarNode Error Occured(if running in FOXY version)
->[RTPS_QOS_CHECK Error] INCORRECT TOPIC QOS (rt/scan_laser): depth must be <= max_samples -> Function checkQos
-```bash
-echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc
-```
-
 ### Note
 In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 
