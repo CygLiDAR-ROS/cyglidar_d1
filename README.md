@@ -19,6 +19,14 @@ colcon build
 sudo apt install ros-{ROS2 Ver Name}-pcl-conversions
 ```
 
+### Installation Udev
+Install the udev rule
+```bash
+cd ~/cyglidar_ws/src/cyglidar_d1/scripts
+chmod +x create_udev_rules.sh
+./create_udev_rules.sh
+```
+
 ### Parameters in 'cyglidar.launch.py' File
 In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D and Dual(2D/3D)
 
