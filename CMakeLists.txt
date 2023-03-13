@@ -51,7 +51,7 @@ install(DIRECTORY ${CYGLIDAR_SDK_PATH}/include/
     DESTINATION include)
 
 install(
-    DIRECTORY launch rviz
+    DIRECTORY launch rviz scripts
     DESTINATION share/${PROJECT_NAME}/
 )
 
