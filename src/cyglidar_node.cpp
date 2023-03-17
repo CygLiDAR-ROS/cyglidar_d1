@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 
     node->get_parameter_or<std::string>("port", port, "/dev/ttyUSB0");
     node->get_parameter_or<int>("baud_rate", baud_rate, 3000000);
-    node->get_parameter_or<std::string>("frame_id", frame_id, "laser_link");
+    node->get_parameter_or<std::string>("frame_id", frame_id, "laser_frame");
     node->get_parameter_or<int>("run_mode", run_mode, 2);
     node->get_parameter_or<int>("duration_mode", duration_mode, PULSE_AUTO);
     node->get_parameter_or<int>("duration_value", duration_value, 10000);
