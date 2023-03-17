@@ -66,7 +66,7 @@ In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 
 ##### Cyglidar Topic List
 ```bash
-/scan_laser (LaserScan)
+/scan       (LaserScan)
 /scan_2D    (PointCloud XYZRGBA)
 /scan_3D    (PointCloud XYZRGBA)
 ```
