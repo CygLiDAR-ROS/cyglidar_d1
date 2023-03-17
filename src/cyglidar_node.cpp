@@ -219,7 +219,7 @@ int main(int argc, char **argv)
         // Open the port
         cyglidar_pcl cyglidar_serial_port(port, baud_rate, io);
 
-        auto publisher_laserscan = node->create_publisher<sensor_msgs::msg::LaserScan>("scan_laser", 5000);
+        auto publisher_laserscan = node->create_publisher<sensor_msgs::msg::LaserScan>("scan", 5000);
         auto publisher_point_2d  = node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_2D", 1);
         auto publisher_point_3d  = node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_3D", 1);
 
