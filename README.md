@@ -17,8 +17,11 @@ catkin_make
 >
 > pcl_rosConfig.cmake / pcl_ros-config.cmake
 ```bash
-sudo apt install ros-{noetic/melodic}-pcl-conversions
-sudo apt install ros-{noetic/melodic}-pcl-ros
+sudo apt install ros-noetic-pcl-conversions
+sudo apt install ros-noetic-pcl-ros
+---or---
+sudo apt install ros-melodic-pcl-conversions
+sudo apt install ros-melodic-pcl-ros
 ```
 
 ### Installation Udev
