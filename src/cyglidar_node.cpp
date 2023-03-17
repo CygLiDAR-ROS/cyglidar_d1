@@ -205,7 +205,7 @@ int main(int argc, char **argv)
         // Open the port
         cyglidar_pcl cyglidar_serial_port(port, baud_rate, io);
 
-        ros::Publisher publisher_laserscan = nh.advertise<sensor_msgs::LaserScan>("scan_laser", SCAN_MAX_SIZE);
+        ros::Publisher publisher_laserscan = nh.advertise<sensor_msgs::LaserScan>("scan", SCAN_MAX_SIZE);
         ros::Publisher publisher_point_2d   = nh.advertise<sensor_msgs::PointCloud2>("scan_2D", 1);
         ros::Publisher publisher_point_3d   = nh.advertise<sensor_msgs::PointCloud2>("scan_3D", 1);
 
