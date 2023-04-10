@@ -197,7 +197,7 @@ int main(int argc, char **argv)
         ROS_INFO("[PACKET UPDATED] FREQUENCY CH.%d", frequency_channel);
         serial_port.requestFrequencyChannel(frequency_channel);
 
-	    sensor_msgs::LaserScan::Ptr             scan_laser(new sensor_msgs::LaserScan);
+	sensor_msgs::LaserScan::Ptr             scan_laser(new sensor_msgs::LaserScan);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
