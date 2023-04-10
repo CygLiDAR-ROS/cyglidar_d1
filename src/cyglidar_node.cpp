@@ -20,7 +20,6 @@ void publishMessageLaserScan(rclcpp::Publisher<sensor_msgs::msg::LaserScan>::Sha
     message_laserscan_->angle_min = -static_cast<double>(CygLiDARD1::Sensor::HorizontalAngle / 2.0f * CygLiDARD1::Util::ToRadian);
     message_laserscan_->angle_max = static_cast<double>(CygLiDARD1::Sensor::HorizontalAngle / 2.0f * CygLiDARD1::Util::ToRadian);
     message_laserscan_->angle_increment = static_cast<double>(CygLiDARD1::Sensor::AngleIncremet2D * CygLiDARD1::Util::ToRadian);
-    message_laserscan_->time_increment = (scan_time_ / (float)(cyg_driver::DATA_LENGTH_2D - 1));
     message_laserscan_->scan_time = scan_time_;
     message_laserscan_->range_min = static_cast<double>(CygLiDARD1::Distance::Mode2D::Minimum_Depth_2D * CygLiDARD1::Util::MM_To_M);
     message_laserscan_->range_max = static_cast<double>(CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D * CygLiDARD1::Util::MM_To_M);
@@ -216,8 +215,8 @@ int main(int argc, char **argv)
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-        rclcpp::Time scan_start_time;
-        double scan_duration = (rclcpp::Duration(0, 150000)).seconds(); //nanosec;
+        ros::Time scan_start_time = ros::Time::now() - ros::Duration(0.00015); //nanosec
+        double scan_duration = 0; 
 
         uint8_t total_packet_data[SCAN_MAX_SIZE];
         uint8_t packet_structure[SCAN_MAX_SIZE];
@@ -237,7 +236,6 @@ int main(int argc, char **argv)
                     {
                         TransformPayload.getDistanceArray2D(&total_packet_data[PAYLOAD_DATA], distance_buffer_2d);
 
-                        scan_start_time = node->now();
                         publishMessageLaserScan(publisher_laserscan, scan_laser, frame_id, scan_start_time, scan_duration, distance_buffer_2d);
                         publishMessagePoint2D(publisher_point_2d, scan_2D, frame_id, distance_buffer_2d);
                     }
