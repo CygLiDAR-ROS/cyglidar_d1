@@ -215,7 +215,7 @@ int main(int argc, char **argv)
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-        rclcpp::Time scan_start_time = rclcpp::Time::now() - rclcpp::Duration(0, 150000); //nanosec
+        rclcpp::Time scan_start_time = node->now() - rclcpp::Duration(0, 150000); //nanosec
         double scan_duration = 0; 
 
         uint8_t total_packet_data[SCAN_MAX_SIZE];
