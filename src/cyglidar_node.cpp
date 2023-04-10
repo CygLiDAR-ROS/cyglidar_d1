@@ -201,8 +201,8 @@ int main(int argc, char **argv)
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_3D(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-        ros::Time scan_start_time = ros::Time::now();
-        double scan_duration = (ros::Duration(0.00015)).toSec();;
+        ros::Time scan_start_time = ros::Time::now() - ros::Duration(0.00015); //nanosec
+        double scan_duration = 0;
 
         uint8_t total_packet_data[SCAN_MAX_SIZE];
         uint8_t packet_structure[SCAN_MAX_SIZE];
