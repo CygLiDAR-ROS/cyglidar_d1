@@ -14,7 +14,7 @@ PointCloudMaker::PointCloudMaker(float *pbuff_x, float *pbuff_y, float *pbuff_z,
 
 // centerpoint_offset : change centerpoint by using offset. (unit : pixel)
 void PointCloudMaker::initLensTransform(const float sensor_point_size_MM, const uint32_t width, const uint32_t height,
-																				const float centerpoint_offset_X, const float centerpoint_offset_Y)
+					const float centerpoint_offset_X, const float centerpoint_offset_Y)
 {
 	int x, y, row, col;
 	int numCols = width;
