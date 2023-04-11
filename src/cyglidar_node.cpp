@@ -189,13 +189,13 @@ int main(int argc, char **argv)
 
         ROS_INFO("%s", serial_port.requestRunMode(static_cast<eRunMode>(run_mode)).c_str());
 
-        ROS_INFO("[PACKET UPDATED] PULSE DURATION : %d", duration_value);
+        
         serial_port.requestDurationControl(static_cast<eRunMode>(run_mode), duration_mode, duration_value);
-        ros::Duration(1.0).sleep();
-        // sleep for a sec, by the duration
-
-        ROS_INFO("[PACKET UPDATED] FREQUENCY CH.%d", frequency_channel);
+        ros::Duration(1.0).sleep(); // sleep for a sec, by the duration        
+	ROS_INFO("[PACKET UPDATED] PULSE DURATION : %d", duration_value);
+        
         serial_port.requestFrequencyChannel(frequency_channel);
+	ROS_INFO("[PACKET UPDATED] FREQUENCY CH.%d", frequency_channel);
 
 	sensor_msgs::LaserScan::Ptr             scan_laser(new sensor_msgs::LaserScan);
         pcl::PointCloud<pcl::PointXYZRGBA>::Ptr scan_2D(new pcl::PointCloud<pcl::PointXYZRGBA>);
