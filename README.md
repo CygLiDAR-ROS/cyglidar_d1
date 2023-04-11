@@ -56,7 +56,7 @@ In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 
 ##### Frame ID
 ```bash
-/laser_link
+/laser_frame
 ```
 
 ##### Fixed Frame
