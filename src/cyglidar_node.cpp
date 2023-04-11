@@ -159,7 +159,7 @@ int main(int argc, char **argv)
     ros::NodeHandle priv_nh("~");
     priv_nh.param<std::string>("port", port, "/dev/ttyUSB0");
     priv_nh.param<int>("baud_rate", baud_rate, 3000000);
-    priv_nh.param<std::string>("frame_id", frame_id, "laser_link");
+    priv_nh.param<std::string>("frame_id", frame_id, "laser_frame");
     priv_nh.param<int>("run_mode", run_mode, 2);
     priv_nh.param<int>("duration_mode", duration_mode, PULSE_AUTO);
     priv_nh.param<int>("duration_value", duration_value, 10000);
