@@ -4,11 +4,11 @@ set(PROJECTNAME "cyglidar_d1")
 project(${PROJECTNAME} CXX C)
 
 set(CYGLIDAR_SDK_PATH "./sdk/")
-set(extra_flags -std=c++11 -g -Werror -Wall -Wextra)
+set(extra_flags -std=c++11 -Werror -Wall -Wextra)
 set(CMAKE_CXX_FLGAS "-std=c++11 -03")
 set(CMAKE_C_LINK_EXECUTABLE ${CMAKE_CXX_LINK_EXECUTABLE})
 
-add_compile_options(-std=c++14 -g)
+add_compile_options(-std=c++14)
 add_definitions(${COMPILE_FLAGS} ${PCL_DEFINITIONS})
 add_definitions(-Wall -O2)
 
