@@ -48,33 +48,28 @@ void publishMessagePoint2D(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::Sha
     pointcloud_2d_->is_dense = false;
     pointcloud_2d_->points.resize(cyg_driver::DATA_LENGTH_2D);
 
-    double angle_step_2d = static_cast<double>(CygLiDARD1::Sensor::AngleIncremet2D);
-    float point_angle_var_2D = 0.0;
-    float tempX_2D, tempY_2D;
+    double angle_increment_steps = static_cast<double>(CygLiDARD1::Sensor::AngleIncremet2D);
+
+    int data_idx;
+    uint16_t raw_distance;
+    float point_angle_2d, point_angle_variable_2d;
+    float world_coordinate_x, world_coordinate_y;
 
     for (int i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
     {
         // Reverse data order of the array
-        int data_idx = (cyg_driver::DATA_LENGTH_2D - 1 - i);
+        data_idx = (cyg_driver::DATA_LENGTH_2D - 1 - i);
 
-        float actual_distance = (distance_buffer_2d_[data_idx]);
+        raw_distance = (distance_buffer_2d_[data_idx]);
 
-        float point_angle_2D = (float)(((-HORIZONTAL_ANGLE / 2)+ point_angle_var_2D) * CygLiDARD1::Util::ToRadian);
-        point_angle_var_2D += angle_step_2d;
+        point_angle_2d = (float)(((-HORIZONTAL_ANGLE / 2)+ point_angle_variable_2d) * CygLiDARD1::Util::ToRadian);
+        point_angle_variable_2d += angle_increment_steps;
 
-        float actualX = (sin(point_angle_2D) * actual_distance);
-        float actualY = (cos(point_angle_2D) * actual_distance);
+        world_coordinate_x = (sin(point_angle_2d) * raw_distance);
+        world_coordinate_y = (cos(point_angle_2d) * raw_distance);
 
-        tempX_2D = actualX;
-        tempY_2D = actualY;
-
-        float rotation_angle = -90.0f * CygLiDARD1::Util::ToRadian;
-
-        actualX = (tempX_2D * cos(rotation_angle)) + (tempY_2D * -sin(rotation_angle));
-        actualY = (tempX_2D * sin(rotation_angle)) + (tempY_2D * cos(rotation_angle));
-
-        pointcloud_2d_->points[i].x = actualX * MM2M;
-        pointcloud_2d_->points[i].y = -actualY * MM2M;
+        pointcloud_2d_->points[i].x = world_coordinate_y * MM2M;
+        pointcloud_2d_->points[i].y = world_coordinate_x * MM2M;
         pointcloud_2d_->points[i].z = 0.0;
 
         if (distance_buffer_2d_[data_idx] < CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D)
@@ -108,30 +103,23 @@ void publishMessagePoint3D(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::Sha
     pointcloud_3d_->height = CygLiDARD1::Sensor::Height;
     pointcloud_3d_->points.resize(cyg_driver::DATA_LENGTH_3D);
 
-    float position_x, position_y, position_z;
+    uint16_t raw_distance;
+    float world_coordinate_x, world_coordinate_y, world_coordinate_z;
+
     for (int buffer_index = 0; buffer_index < CygLiDARD1::Sensor::Height * CygLiDARD1::Sensor::Width; buffer_index++)
     {
-        uint16_t distance = distance_buffer_3d_[buffer_index];
+        raw_distance = distance_buffer_3d_[buffer_index];
 
-        if(distance < CygLiDARD1::Distance::Mode3D::Maximum_Depth_3D)
+        if(raw_distance < CygLiDARD1::Distance::Mode3D::Maximum_Depth_3D)
         {
-            if(PointCloud.calcPointCloud(distance, buffer_index, position_x, position_y, position_z) == eCalculationStatus::SUCCESS)
-            {
-                pointcloud_3d_->points[buffer_index].x = position_z * MM2M;
-                pointcloud_3d_->points[buffer_index].y = -position_x * MM2M;
-                pointcloud_3d_->points[buffer_index].z = -position_y * MM2M;
-                uint32_t color_change_with_height = colorRGB.color_map[((int)position_y / 2) % colorRGB.color_map.size()];
-                pointcloud_3d_->points[buffer_index].rgb = *reinterpret_cast<float*>(&color_change_with_height);
-                pointcloud_3d_->points[buffer_index].a = 255;
-            }
-            else
-            {
-                pointcloud_3d_->points[buffer_index].x = 0;
-                pointcloud_3d_->points[buffer_index].y = 0;
-                pointcloud_3d_->points[buffer_index].z = 0;
-                pointcloud_3d_->points[buffer_index].rgb = 0;
-                pointcloud_3d_->points[buffer_index].a = 0;
-            }
+            PointCloud.calcPointCloud(raw_distance, buffer_index, world_coordinate_x, world_coordinate_y, world_coordinate_z);
+
+            pointcloud_3d_->points[buffer_index].x = world_coordinate_z * MM2M;
+            pointcloud_3d_->points[buffer_index].y = -world_coordinate_x * MM2M;
+            pointcloud_3d_->points[buffer_index].z = -world_coordinate_y * MM2M;
+            uint32_t color_change_with_height = color_map[((int)world_coordinate_y / 2) % color_map.size()];
+            pointcloud_3d_->points[buffer_index].rgb = *reinterpret_cast<float *>(&color_change_with_height);
+            pointcloud_3d_->points[buffer_index].a = 255;
         }
         else
         {
