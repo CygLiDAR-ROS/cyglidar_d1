@@ -117,7 +117,7 @@ void publishMessagePoint3D(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::Sha
             pointcloud_3d_->points[buffer_index].x = world_coordinate_z * MM2M;
             pointcloud_3d_->points[buffer_index].y = -world_coordinate_x * MM2M;
             pointcloud_3d_->points[buffer_index].z = -world_coordinate_y * MM2M;
-            uint32_t color_change_with_height = color_map[((int)world_coordinate_y / 2) % color_map.size()];
+            uint32_t color_change_with_height = colorRGB.color_map[((int)world_coordinate_y / 2) % colorRGB.color_map.size()];
             pointcloud_3d_->points[buffer_index].rgb = *reinterpret_cast<float *>(&color_change_with_height);
             pointcloud_3d_->points[buffer_index].a = 255;
         }
