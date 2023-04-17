@@ -151,7 +151,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: laser_link
+    Fixed Frame: laser_frame
     Frame Rate: 30
   Name: root
   Tools:
