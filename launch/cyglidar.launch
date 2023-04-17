@@ -5,7 +5,7 @@
   <arg name="pulse_control"   default="0"     doc="pulse mode [0, 1]"/>        <!-- 0: Auto, 1: Manual -->
   <arg name="pulse_duration"  default="10000" doc="duration [0 to 10000]"/>
 
-  <node name="cyglidar_publisher" pkg="cyglidar_d1" type="cyglidar_publisher" output="screen">
+  <node name="CyglidarNode" pkg="cyglidar_d1" type="CyglidarNode" output="screen">
     <param name="port"              value="/dev/ttyUSB0"/>
     <param name="baud_rate"         value="3000000"/>
     <param name="frame_id"          value="laser_frame"/>
