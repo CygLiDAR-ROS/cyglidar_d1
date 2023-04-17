@@ -13,7 +13,7 @@
 ColorRGB colorRGB;
 
 void publishMessageLaserScan(ros::Publisher publisher_laserscan_, sensor_msgs::LaserScan::Ptr message_laserscan_, std::string frame_id_,
-                             ros::Time start_, double scan_time_, uint16_t *Distance2D_)
+                             ros::Time start_, double scan_time_, uint16_t *distance_buffer_2d_)
 {
     message_laserscan_->header.frame_id = frame_id_;
     message_laserscan_->header.stamp = start_;
@@ -29,9 +29,9 @@ void publishMessageLaserScan(ros::Publisher publisher_laserscan_, sensor_msgs::L
     for (int i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
     {
         int data_index = (cyg_driver::DATA_LENGTH_2D - 1 - i);
-        if (Distance2D_[data_index] < (float)(CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D))
+        if (distance_buffer_2d_[data_index] < (float)(CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D))
         {
-            message_laserscan_->ranges[i] = Distance2D_[data_index] * MM2M;
+            message_laserscan_->ranges[i] = distance_buffer_2d_[data_index] * MM2M;
         }
         else
         {
@@ -42,7 +42,7 @@ void publishMessageLaserScan(ros::Publisher publisher_laserscan_, sensor_msgs::L
 }
 
 void publishMessagePoint2D(ros::Publisher publisher_point_2d_, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_2d_,
-                           std::string frame_id_, uint16_t *Distance2D_)
+                           std::string frame_id_, uint16_t *distance_buffer_2d_)
 {
     message_point_2d_->header.frame_id = frame_id_;
     message_point_2d_->is_dense = false;
@@ -68,21 +68,21 @@ void publishMessagePoint2D(ros::Publisher publisher_point_2d_, pcl::PointCloud<p
         world_coordinate_x = (sin(point_angle_2d) * raw_distance);
         world_coordinate_y = (cos(point_angle_2d) * raw_distance);
 
-        pointcloud_2d_->points[i].x = world_coordinate_y * MM2M;
-        pointcloud_2d_->points[i].y = world_coordinate_x * MM2M;
-        pointcloud_2d_->points[i].z = 0.0;
+        message_point_2d_->points[i].x = world_coordinate_y * MM2M;
+        message_point_2d_->points[i].y = world_coordinate_x * MM2M;
+        message_point_2d_->points[i].z = 0.0;
 
         if (distance_buffer_2d_[data_idx] < CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D)
         {
-            pointcloud_2d_->points[i].r = 255;
-            pointcloud_2d_->points[i].g = 255;
-            pointcloud_2d_->points[i].b = 0;
-            pointcloud_2d_->points[i].a = 255;
+            message_point_2d_->points[i].r = 255;
+            message_point_2d_->points[i].g = 255;
+            message_point_2d_->points[i].b = 0;
+            message_point_2d_->points[i].a = 255;
         }
         else
         {
             // Turn data invisible when it's greater than the maximum
-            pointcloud_2d_->points[i].a = 0;
+            message_point_2d_->points[i].a = 0;
         }
     }
     pcl_conversions::toPCL(ros::Time::now(), message_point_2d_->header.stamp);
@@ -90,7 +90,7 @@ void publishMessagePoint2D(ros::Publisher publisher_point_2d_, pcl::PointCloud<p
 }
 
 void publishMessagePoint3D(ros::Publisher publisher_point_3d_, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_3d_,
-                           std::string frame_id_, PointCloudMaker &PointCloud, uint16_t *Distance3D_)
+                           std::string frame_id_, PointCloudMaker &PointCloud, uint16_t *distance_buffer_3d_)
 {
     message_point_3d_->header.frame_id = frame_id_;
     message_point_3d_->is_dense = false;
@@ -109,20 +109,20 @@ void publishMessagePoint3D(ros::Publisher publisher_point_3d_, pcl::PointCloud<p
         {
             PointCloud.calcPointCloud(raw_distance, buffer_index, world_coordinate_x, world_coordinate_y, world_coordinate_z);
 
-            pointcloud_3d_->points[buffer_index].x = world_coordinate_z * MM2M;
-            pointcloud_3d_->points[buffer_index].y = -world_coordinate_x * MM2M;
-            pointcloud_3d_->points[buffer_index].z = -world_coordinate_y * MM2M;
+            message_point_3d_->points[buffer_index].x = world_coordinate_z * MM2M;
+            message_point_3d_->points[buffer_index].y = -world_coordinate_x * MM2M;
+            message_point_3d_->points[buffer_index].z = -world_coordinate_y * MM2M;
             uint32_t color_change_with_height = colorRGB.color_map[((int)world_coordinate_y / 2) % colorRGB.color_map.size()];
-            pointcloud_3d_->points[buffer_index].rgb = *reinterpret_cast<float *>(&color_change_with_height);
-            pointcloud_3d_->points[buffer_index].a = 255;
+            message_point_3d_->points[buffer_index].rgb = *reinterpret_cast<float *>(&color_change_with_height);
+            message_point_3d_->points[buffer_index].a = 255;
         }
         else
         {
-            pointcloud_3d_->points[buffer_index].x = 0;
-            pointcloud_3d_->points[buffer_index].y = 0;
-            pointcloud_3d_->points[buffer_index].z = 0;
-            pointcloud_3d_->points[buffer_index].rgb = 0;
-            pointcloud_3d_->points[buffer_index].a = 0;
+            message_point_3d_->points[buffer_index].x = 0;
+            message_point_3d_->points[buffer_index].y = 0;
+            message_point_3d_->points[buffer_index].z = 0;
+            message_point_3d_->points[buffer_index].rgb = 0;
+            message_point_3d_->points[buffer_index].a = 0;
         }
     }
     pcl_conversions::toPCL(ros::Time::now(), message_point_3d_->header.stamp);
