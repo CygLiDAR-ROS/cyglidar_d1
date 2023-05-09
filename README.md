@@ -40,6 +40,12 @@ And the others can be switched respectively as below:
 ros2 launch cyglidar_d1_ros2 cyglidar.launch.py
 ros2 launch cyglidar_d1_ros2 view_cyglidar.launch.py  (Run with Rviz)
 ```
+### Topic Image Updated
+<h1 align="left">
+  <img src="screenshots/image_view.png" width="800"/>
+</h1>
+The measured distance datas in Rviz can be viewed as an 'Image Topic(MONO16)'. You can adjust the min/max value to specify a view based on distance.
+
 #1 When CyglidarNode Error Occured
 >[Error] : An exception was thrown [open : Permission denied]
 
@@ -65,4 +71,5 @@ In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 /scan       (LaserScan)
 /scan_2D    (PointCloud XYZRGBA)
 /scan_3D    (PointCloud XYZRGBA)
+/scan_image (Image)
 ```
