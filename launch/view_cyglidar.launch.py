@@ -9,7 +9,7 @@ from launch.substitutions import ThisLaunchFileDir
 
 def generate_launch_description():
     rviz_config_dir = os.path.join(
-            get_package_share_directory('cyglidar_d1'),
+            get_package_share_directory('cyglidar_d1_ros2'),
             'rviz',
             'cyglidar_config.rviz')
 
