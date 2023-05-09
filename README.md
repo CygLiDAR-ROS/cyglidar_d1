@@ -32,7 +32,7 @@ In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D
 
 And the others can be switched respectively as below:
 <h1 align="left">
-  <img src="screenshots/launch_py_parameter.png" width="800"/>
+  <img src="screenshots/launch_parameter.png" width="800"/>
 </h1>
 
 ### Topic Image Updated
