@@ -58,21 +58,21 @@ namespace D1
             world_coordinate_x = (sin(point_angle_2d) * raw_distance);
             world_coordinate_y = (cos(point_angle_2d) * raw_distance);
 
-            pointcloud_2d_->points[i].x = world_coordinate_y * MM2M;
-            pointcloud_2d_->points[i].y = world_coordinate_x * MM2M;
-            pointcloud_2d_->points[i].z = 0.0;
+            message_point_2d_->points[i].x = world_coordinate_y * MM2M;
+            message_point_2d_->points[i].y = world_coordinate_x * MM2M;
+            message_point_2d_->points[i].z = 0.0;
 
             if (distance_buffer_2d_[data_idx] < CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D)
             {
-                pointcloud_2d_->points[i].r = 255;
-                pointcloud_2d_->points[i].g = 255;
-                pointcloud_2d_->points[i].b = 0;
-                pointcloud_2d_->points[i].a = 255;
+                message_point_2d_->points[i].r = 255;
+                message_point_2d_->points[i].g = 255;
+                message_point_2d_->points[i].b = 0;
+                message_point_2d_->points[i].a = 255;
             }
             else
             {
                 // Turn data invisible when it's greater than the maximum
-                pointcloud_2d_->points[i].a = 0;
+                message_point_2d_->points[i].a = 0;
             }
         }
         pcl_conversions::toPCL(ros::Time::now(), message_point_2d_->header.stamp);
