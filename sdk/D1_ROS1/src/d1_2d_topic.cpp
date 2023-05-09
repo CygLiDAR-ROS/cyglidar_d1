@@ -19,7 +19,7 @@ namespace D1
         for (int i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
         {
             int data_index = (cyg_driver::DATA_LENGTH_2D - 1 - i);
-            if (distance_buffer_2d_[data_index] < (float)(CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D))
+            if (distance_buffer_2d_[data_index] < CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D)
             {
                 message_laserscan_->ranges[i] = distance_buffer_2d_[data_index] * MM2M;
             }
