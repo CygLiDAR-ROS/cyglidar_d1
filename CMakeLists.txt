@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-set(PROJECTNAME "cyglidar_d1")
+set(PROJECTNAME "cyglidar_d1_ros1")
 project(${PROJECTNAME} CXX C)
 
 set(extra_flags -std=c++11 -Werror -Wall -Wextra)
