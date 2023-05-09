@@ -145,7 +145,7 @@ Visualization Manager:
     - Class: rviz/Image
       Enabled: true
       Image Topic: /scan_image
-      Max Value: 4000
+      Max Value: 3000
       Median window: 5
       Min Value: 0
       Name: Image
