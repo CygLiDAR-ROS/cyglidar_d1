@@ -43,7 +43,7 @@ And the others can be switched respectively as below:
 
 ### Run CyglidarNode and View in the Rviz
 <h1 align="left">
-  <img src="screenshots/launch_file_rviz.png" width="800"/>
+  <img src="screenshots/launch_file_display.png" width="800"/>
 </h1>
 
 ```bash
