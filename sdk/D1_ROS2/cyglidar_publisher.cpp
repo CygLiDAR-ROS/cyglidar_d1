@@ -5,7 +5,6 @@
 #include "d1_2d_topic.h"
 #include "d1_3d_topic.h"
 
-
 #include <chrono>
 #include <rclcpp/rclcpp.hpp>
 
