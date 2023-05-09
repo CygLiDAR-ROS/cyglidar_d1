@@ -37,8 +37,8 @@ And the others can be switched respectively as below:
 
 ### Run CyglidarNode and View in the Rviz
 ```bash
-ros2 launch cyglidar_d1 cyglidar.launch.py
-ros2 launch cyglidar_d1 view_cyglidar.launch.py  (Run with Rviz)
+ros2 launch cyglidar_d1_ros2 cyglidar.launch.py
+ros2 launch cyglidar_d1_ros2 view_cyglidar.launch.py  (Run with Rviz)
 ```
 #1 When CyglidarNode Error Occured
 >[Error] : An exception was thrown [open : Permission denied]
