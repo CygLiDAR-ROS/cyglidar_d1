@@ -47,8 +47,8 @@ And the others can be switched respectively as below:
 </h1>
 
 ```bash
-roslaunch cyglidar_d1 cyglidar.launch
-roslaunch cyglidar_d1 view_cyglidar.launch  (Run with Rviz)
+roslaunch cyglidar_d1_ros1 cyglidar.launch
+roslaunch cyglidar_d1_ros1 view_cyglidar.launch  (Run with Rviz)
 ```
 ### Topic Image Updated
 <h1 align="left">
