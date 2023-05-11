@@ -50,6 +50,8 @@ int main(int argc, char **argv)
     D1::Topic_2D  Topic_2D;
     D1::Topic_3D  Topic_3D;
     cyg_driver::TransformPayload TransformPayload;
+    
+    signal(SIGINT, interruptHandler);
 
     // Call the following function so as to store colors to draw 3D data
     colorRGB.initColorMap();
