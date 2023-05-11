@@ -8,6 +8,14 @@
 #include <chrono>
 #include <rclcpp/rclcpp.hpp>
 
+bool thread_exit = false;
+
+void interruptHandler(int signal)
+{
+    (void)signal;
+    thread_exit = true;
+}
+
 int main(int argc, char **argv)
 {
     std::string port;
@@ -89,7 +97,7 @@ int main(int argc, char **argv)
         uint16_t distance_buffer_3d[cyg_driver::DATA_LENGTH_3D];
         uint16_t number_of_data = 0;
 
-        while (rclcpp::ok())
+        while (rclcpp::ok() && !thread_exit)
         {
             number_of_data = serial_port.getPacketLength(packet_structure, SCAN_MAX_SIZE);
             for (uint16_t i = 0; i < number_of_data; i++)
@@ -112,6 +120,7 @@ int main(int argc, char **argv)
                     }
                 }
             }
+            rclcpp::spin_some(node->shared_from_this());
         }
         serial_port.close();
         RCLCPP_INFO(node->get_logger(), "PACKET UPDATED : STOP");
