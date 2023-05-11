@@ -112,6 +112,7 @@ int main(int argc, char **argv)
                     }
                 }
             }
+            rclcpp::spin_some(node->shared_from_this());
         }
         serial_port.close();
         RCLCPP_INFO(node->get_logger(), "PACKET UPDATED : STOP");
