@@ -1,3 +1,6 @@
+#ifndef __D1_2D_TOPIC_H
+#define __D1_2D_TOPIC_H
+
 #include "d_series_constant.h"
 #include "cyglidar_driver.h"
 #include "serial.h"
@@ -12,10 +15,20 @@ namespace D1
     class Topic_2D
     {
         public:
-            void publishScanLaser(rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr &publisher_laserscan_, sensor_msgs::msg::LaserScan::SharedPtr message_laserscan_,
-                                  std::string frame_id_, rclcpp::Time start_, double scan_time_, uint16_t *distance_buffer_2d_);
+            int buffer_index;
+            uint16_t raw_distance;
+            float angle_increment_steps;
+            float point_2d_angle, point_2d_angle_variable;
 
-            void publishPoint2D(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr &publisher_point_2d_, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud_2d_,
-                                std::string frame_id_, uint16_t *distance_buffer_2d_);
+            float camera_coordinate_x, camera_coordinate_y;
+
+
+            void publishScanLaser(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr &publisher_laserscan_,
+                                  rclcpp::Time start_time_, uint16_t *distance_buffer_2d_);
+
+            void publishPoint2D(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr &publisher_point_2d_,
+                                uint16_t *distance_buffer_2d_);
     };
 }
+
+#endif
