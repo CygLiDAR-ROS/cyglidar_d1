@@ -120,5 +120,4 @@ class cyglidar_serial
         uint8_t payload_buffer[10];
         void makeCommand(uint8_t* command_buffer_, uint8_t* payload_, const uint16_t payload_size_);
 };
-
 #endif
