@@ -9,7 +9,6 @@
 #include <limits>
 #include <math.h>
 
-
 enum eCalculationStatus
 {
 	FAIL,
