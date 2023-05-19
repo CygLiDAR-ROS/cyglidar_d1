@@ -1,4 +1,4 @@
-# cyglidar_d1(ROS2)
+# cyglidar_d1(ROS2 in Ubuntu 20.04)
 cyglidar_d1 is a ROS package, which is designed to visualize 2D/3D distance dataset in real-time.
 For more details in CygLiDAR, please visit http://www.cygbot.com
 
