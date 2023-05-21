@@ -1,7 +1,4 @@
 #include "cyglidar_driver.h"
-#include "serial.h"
-#include "d_series_constant.h"
-
 
 namespace cyg_driver
 {
