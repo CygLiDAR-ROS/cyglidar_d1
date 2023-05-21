@@ -15,11 +15,16 @@ namespace D1
     class Topic_3D
     {
         public:
-            void publishScanImage(ros::Publisher publisher_image_, sensor_msgs::Image::Ptr message_image_,
-                                  std::string frame_id_, uint16_t *payload_data_buffer_3d);
+            int buffer_index;
+            uint16_t raw_distance;
+            uint16_t *depth_data;
+            uint32_t color_change_with_height;
 
-            void publishPoint3D(ros::Publisher publisher_point_3d_, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_3d_, std::string frame_id_,
-                                PointCloudMaker &PointCloud, std::vector<uint32_t> color_map, uint16_t *payload_data_buffer_3d);
+            float camera_coordinate_x, camera_coordinate_y, camera_coordinate_z;
+            const uint16_t bad_point = 0;
+
+            void publishScanImage(std::string frame_id_, ros::Publisher publisher_image_, uint16_t *payload_data_buffer_3d);
+            void publishPoint3D(std::string frame_id_, ros::Publisher publisher_point_3d_, PointCloudMaker &pointcloud_maker, uint16_t *payload_data_buffer_3d);
     };
 }
 
