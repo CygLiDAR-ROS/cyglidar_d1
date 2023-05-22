@@ -2,6 +2,8 @@
 
 namespace D1
 {
+    using namespace CygLiDARD1;
+
     void Topic_2D::publishScanLaser(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr &publisher_laserscan_,
                                     rclcpp::Time start_time_, uint16_t *distance_buffer_2d_)
     {
@@ -9,12 +11,12 @@ namespace D1
 
         message_laserscan->header.frame_id = frame_id_;
         message_laserscan->header.stamp = start_time_;
-        message_laserscan->angle_min = -static_cast<double>(CygLiDARD1::Sensor::HorizontalAngle / 2.0f * CygLiDARD1::Util::ToRadian);
-        message_laserscan->angle_max =  static_cast<double>(CygLiDARD1::Sensor::HorizontalAngle / 2.0f * CygLiDARD1::Util::ToRadian);
-        message_laserscan->angle_increment = static_cast<double>(CygLiDARD1::Sensor::AngleIncremet2D * CygLiDARD1::Util::ToRadian);
+        message_laserscan->angle_min = -static_cast<double>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
+        message_laserscan->angle_max =  static_cast<double>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
+        message_laserscan->angle_increment = static_cast<double>(Sensor::AngleIncremet2D * Util::ToRadian);
         message_laserscan->scan_time = 0;
-        message_laserscan->range_min = static_cast<double>(CygLiDARD1::Distance::Mode2D::Minimum_Depth_2D * CygLiDARD1::Util::MM_To_M);
-        message_laserscan->range_max = static_cast<double>(CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D * CygLiDARD1::Util::MM_To_M);
+        message_laserscan->range_min = static_cast<double>(Distance::Mode2D::Minimum_Depth_2D * Util::MM_To_M);
+        message_laserscan->range_max = static_cast<double>(Distance::Mode2D::Maximum_Depth_2D * Util::MM_To_M);
         message_laserscan->ranges.resize(cyg_driver::DATA_LENGTH_2D);
         message_laserscan->intensities.resize(cyg_driver::DATA_LENGTH_2D);
 
@@ -23,7 +25,7 @@ namespace D1
             // Reverse data order of the array
             buffer_index = (cyg_driver::DATA_LENGTH_2D - 1 - i);
 
-            if (distance_buffer_2d_[buffer_index] < CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D)
+            if (distance_buffer_2d_[buffer_index] < Distance::Mode2D::Maximum_Depth_2D)
             {
                 message_laserscan->ranges[i] = distance_buffer_2d_[buffer_index] * MM2M;
             }
@@ -45,7 +47,7 @@ namespace D1
         pointcloud_2d->is_dense = false;
         pointcloud_2d->points.resize(cyg_driver::DATA_LENGTH_2D);
 
-        angle_increment_steps = static_cast<float>(CygLiDARD1::Sensor::AngleIncremet2D);
+        angle_increment_steps = static_cast<float>(Sensor::AngleIncremet2D);
 
         for (int i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
         {
@@ -53,7 +55,7 @@ namespace D1
 
             raw_distance = distance_buffer_2d_[buffer_index];
 
-            point_2d_angle = ((-HORIZONTAL_ANGLE / 2)+ point_2d_angle_variable) * CygLiDARD1::Util::ToRadian;
+            point_2d_angle = ((-HORIZONTAL_ANGLE / 2)+ point_2d_angle_variable) * Util::ToRadian;
             point_2d_angle_variable += angle_increment_steps;
 
             camera_coordinate_x = (sin(point_2d_angle) * raw_distance);
@@ -63,7 +65,7 @@ namespace D1
             pointcloud_2d->points[i].y = camera_coordinate_x * MM2M;
             pointcloud_2d->points[i].z = 0.0;
 
-            if (distance_buffer_2d_[buffer_index] < CygLiDARD1::Distance::Mode2D::Maximum_Depth_2D)
+            if (distance_buffer_2d_[buffer_index] < Distance::Mode2D::Maximum_Depth_2D)
             {
                 pointcloud_2d->points[i].r = 255;
                 pointcloud_2d->points[i].g = 255;
