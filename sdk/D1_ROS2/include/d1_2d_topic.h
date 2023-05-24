@@ -15,7 +15,7 @@ namespace D1
     class Topic_2D
     {
         public:
-            int buffer_index;
+            uint8_t buffer_index;
             uint16_t raw_distance;
             float angle_increment_steps;
             float point_2d_angle, point_2d_angle_variable;
