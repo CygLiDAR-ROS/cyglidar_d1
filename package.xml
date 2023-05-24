@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
   <name>cyglidar_d1_ros1</name>
-  <version>0.0.2</version>
-  <description>cyglidar_pcl_driver</description>
+  <version>0.3.0</version>
+  <description>cyglidar_ros1_driver</description>
 
   <maintainer email="hmkim@cygbot.com">Hyunmin Kim</maintainer>
   <license>BSD</license>
