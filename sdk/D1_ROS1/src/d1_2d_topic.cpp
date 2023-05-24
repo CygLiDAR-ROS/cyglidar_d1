@@ -39,16 +39,24 @@ namespace D1
 
     void Topic_2D::publishPoint2D(std::string frame_id_, ros::Publisher publisher_point_2d_, uint16_t *distance_buffer_2d_)
     {
-        pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_2d(new pcl::PointCloud<pcl::PointXYZRGBA>);
+        pcl::PointCloud<pcl::PointXYZRGBA> pointcloud_2d;
 
-        message_point_2d->header.frame_id = frame_id_;
-        message_point_2d->is_dense = false;
-        message_point_2d->points.resize(cyg_driver::DATA_LENGTH_2D);
+        pointcloud_2d.header.frame_id = frame_id_;
+        pointcloud_2d.is_dense = false;
+        pointcloud_2d.points.resize(cyg_driver::DATA_LENGTH_2D);
 
-        double angle_increment_steps = static_cast<double>(Sensor::AngleIncremet2D);
-        double point_2d_angle, point_2d_angle_variable;
+        asssignPointCloud2DPosition(pointcloud_2d, distance_buffer_2d_);
 
-        for (int i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
+        pcl_conversions::toPCL(ros::Time::now(), pointcloud_2d.header.stamp);
+        publisher_point_2d_.publish(pointcloud_2d);
+    }
+    
+    void Topic_2D::asssignPointCloud2DPosition(pcl::PointCloud<pcl::PointXYZRGBA> &pointcloud_2d_, uint16_t *distance_buffer_2d_)
+    {
+        float angle_increment_steps = static_cast<float>(Sensor::AngleIncremet2D);
+        float point_2d_angle, point_2d_angle_variable;
+
+        for (uint8_t i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
         {
             buffer_index = (cyg_driver::DATA_LENGTH_2D - 1 - i);
 
@@ -60,24 +68,15 @@ namespace D1
             camera_coordinate_x = (sin(point_2d_angle) * raw_distance);
             camera_coordinate_y = (cos(point_2d_angle) * raw_distance);
 
-            message_point_2d->points[i].x = camera_coordinate_y * MM2M;
-            message_point_2d->points[i].y = camera_coordinate_x * MM2M;
-            message_point_2d->points[i].z = 0.0;
+            pointcloud_2d_.points[i].x = camera_coordinate_y * MM2M;
+            pointcloud_2d_.points[i].y = camera_coordinate_x * MM2M;
+            pointcloud_2d_.points[i].z = 0.0;
 
             if (distance_buffer_2d_[buffer_index] < Distance::Mode2D::Maximum_Depth_2D)
-            {
-                message_point_2d->points[i].r = 255;
-                message_point_2d->points[i].g = 255;
-                message_point_2d->points[i].b = 0;
-                message_point_2d->points[i].a = 255;
-            }
+                pointcloud_2d_.points[i].rgba = 0xFFFFFF00; //ARGB
             else
-            {
                 // Turn data invisible when it's greater than the maximum
-                message_point_2d->points[i].a = 0;
-            }
+                pointcloud_2d_.points[i].a = 0;
         }
-        pcl_conversions::toPCL(ros::Time::now(), message_point_2d->header.stamp);
-        publisher_point_2d_.publish(message_point_2d);
     }
 }
