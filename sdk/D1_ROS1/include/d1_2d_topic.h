@@ -19,7 +19,10 @@ namespace D1
             float camera_coordinate_x, camera_coordinate_y;
 
             void publishScanLaser(std::string frame_id_, ros::Publisher publisher_laserscan_, ros::Time start_time_, uint16_t *distance_buffer_2d_);
+            void assignLaserScanData(std::string frame_id_, ros::Time start_time_, sensor_msgs::LaserScan &message_laserscan_);
+            
             void publishPoint2D(std::string frame_id_, ros::Publisher publisher_point_2d_, uint16_t *distance_buffer_2d_);
+            void asssignPointCloud2DPosition(pcl::PointCloud<pcl::PointXYZRGBA> &pointcloud_2d_, uint16_t *distance_buffer_2d_);
     };
 }
 
