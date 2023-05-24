@@ -23,11 +23,13 @@ namespace D1
             float camera_coordinate_x, camera_coordinate_y;
 
 
-            void publishScanLaser(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr &publisher_laserscan_,
-                                  rclcpp::Time start_time_, uint16_t *distance_buffer_2d_);
+            void publishScanLaser(std::string frame_id, rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr &publisher_laserscan_,
+                                  rclcpp::Time start_time, uint16_t *distance_buffer_2d_);
+            void assignLaserScanData(std::string frame_id_, rclcpp::Time start_time_, sensor_msgs::msg::LaserScan &message_laserscan_);
 
             void publishPoint2D(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr &publisher_point_2d_,
                                 uint16_t *distance_buffer_2d_);
+            void asssignPointCloud2DPosition(pcl::PointCloud<pcl::PointXYZRGBA> &pointcloud_2d_, uint16_t *distance_buffer_2d_);
     };
 }
 
