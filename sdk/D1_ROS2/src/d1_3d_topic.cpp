@@ -4,36 +4,34 @@ namespace D1
 {
     using namespace CygLiDARD1;
 
-    void Topic_3D::publishScanImage(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_image_,
-                                    uint16_t *payload_data_buffer_3d)
+    void Topic_3D::publishScanImage(std::string frame_id, rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_image_, uint16_t *distance_buffer_3d_)
     {
-        sensor_msgs::msg::Image::SharedPtr message_image(new sensor_msgs::msg::Image);
+        sensor_msgs::msg::Image message_image;
 
-        message_image->header.stamp = rclcpp::Clock().now();
-        message_image->header.frame_id = frame_id_;
-        message_image->height = static_cast<uint32_t>(Sensor::Height);
-        message_image->width  = static_cast<uint32_t>(Sensor::Width);
-        message_image->encoding = sensor_msgs::image_encodings::MONO16;
-        message_image->step = message_image->width * sizeof(uint16_t);
-        message_image->is_bigendian = false;
-        message_image->data.resize(message_image->height * message_image->step);
+        assignImageData(frame_id, message_image);
 
-        depth_data = reinterpret_cast<uint16_t*>(&message_image->data[0]);
+        depth_data = reinterpret_cast<uint16_t*>(&message_image.data[0]);
 
-        for (int y = 0; y < message_image->height; y++)
+        for (buffer_index = 0; buffer_index < message_image.height * message_image.width; buffer_index++)
         {
-            for (int x = 0; x < message_image->width; x++)
-            {
-                buffer_index = x + (y * message_image->width);
-
-                if (payload_data_buffer_3d[buffer_index] < Distance::Mode3D::Maximum_Depth_3D)
-                {
-                    depth_data[buffer_index] = payload_data_buffer_3d[buffer_index];
-                }
-                else depth_data[buffer_index] = bad_point;
-            }
+            if (distance_buffer_3d_[buffer_index] < Distance::Mode3D::Maximum_Depth_3D)
+                depth_data[buffer_index] = distance_buffer_3d_[buffer_index];
+            else
+                depth_data[buffer_index] = bad_point;
         }
-        publisher_image_->publish(*message_image);
+        publisher_image_->publish(message_image);
+    }
+
+    void Topic_3D::assignImageData(std::string frame_id_, sensor_msgs::msg::Image &message_image_)
+    {
+        message_image_.header.stamp = rclcpp::Clock().now();
+        message_image_.header.frame_id = frame_id_;
+        message_image_.height = static_cast<uint32_t>(Sensor::Height);
+        message_image_.width  = static_cast<uint32_t>(Sensor::Width);
+        message_image_.encoding = sensor_msgs::image_encodings::MONO16;
+        message_image_.step = message_image_.width * sizeof(uint16_t);
+        message_image_.is_bigendian = false;
+        message_image_.data.resize(message_image_.height * message_image_.step);
     }
 
     void Topic_3D::publishPoint3D(std::string frame_id_, rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr &publisher_point_3d_,
