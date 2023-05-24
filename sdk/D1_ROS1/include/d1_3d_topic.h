@@ -15,13 +15,17 @@ namespace D1
     class Topic_3D
     {
         public:
-            int buffer_index;
+            uint16_t buffer_index;
             uint16_t raw_distance;
             uint16_t *depth_data;
-            uint32_t color_change_with_height;
-
-            float camera_coordinate_x, camera_coordinate_y, camera_coordinate_z;
             const uint16_t bad_point = 0;
+            
+            uint16_t new_color_3d, color_level;
+            uint16_t total_color_number = 511; //color map array's total size is 511
+            uint32_t rgb_setup;
+            float color_gap;
+
+            float camera_coordinate_x, camera_coordinate_y, camera_coordinate_z;            
 
             void publishScanImage(std::string frame_id_, ros::Publisher publisher_image_, uint16_t *payload_data_buffer_3d);
             void publishPoint3D(std::string frame_id_, ros::Publisher publisher_point_3d_, PointCloudMaker &pointcloud_maker, uint16_t *payload_data_buffer_3d);
