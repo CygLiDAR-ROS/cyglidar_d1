@@ -4,36 +4,37 @@ namespace D1
 {
     using namespace CygLiDARD1;
 
-    void Topic_2D::publishScanLaser(std::string frame_id_, ros::Publisher publisher_laserscan_, ros::Time start_time_, uint16_t *distance_buffer_2d_)
+    void Topic_2D::publishScanLaser(std::string frame_id, ros::Publisher publisher_laserscan_, ros::Time start_time, uint16_t *distance_buffer_2d_)
     {
-        sensor_msgs::LaserScan::Ptr message_laserscan(new sensor_msgs::LaserScan);
+        sensor_msgs::LaserScan message_laserscan;
 
-        message_laserscan->header.frame_id = frame_id_;
-        message_laserscan->header.stamp = start_time_;
-        message_laserscan->angle_min = -static_cast<double>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
-        message_laserscan->angle_max =  static_cast<double>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
-        message_laserscan->angle_increment = static_cast<double>(Sensor::AngleIncremet2D * Util::ToRadian);
-        message_laserscan->scan_time = 0;
-        message_laserscan->range_min = static_cast<double>(Distance::Mode2D::Minimum_Depth_2D * Util::MM_To_M);
-        message_laserscan->range_max = static_cast<double>(Distance::Mode2D::Maximum_Depth_2D * Util::MM_To_M);
-        message_laserscan->ranges.resize(cyg_driver::DATA_LENGTH_2D);
-        message_laserscan->intensities.resize(cyg_driver::DATA_LENGTH_2D);
+        assignLaserScanData(frame_id, start_time, message_laserscan);
 
-        for (int i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
+        for (uint8_t i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
         {
             // Reverse data order of the array
             buffer_index = (cyg_driver::DATA_LENGTH_2D - 1 - i);
 
             if (distance_buffer_2d_[buffer_index] < Distance::Mode2D::Maximum_Depth_2D)
-            {
-                message_laserscan->ranges[i] = distance_buffer_2d_[buffer_index] * MM2M;
-            }
+                message_laserscan.ranges[i] = distance_buffer_2d_[buffer_index] * MM2M;
             else
-            {
-                message_laserscan->ranges[i] = std::numeric_limits<float>::infinity();
-            }
+                message_laserscan.ranges[i] = std::numeric_limits<float>::infinity();
         }
         publisher_laserscan_.publish(message_laserscan);
+    }
+    
+    void Topic_2D::assignLaserScanData(std::string frame_id_, ros::Time start_time_, sensor_msgs::LaserScan &message_laserscan_)
+    {
+        message_laserscan_.header.frame_id = frame_id_;
+        message_laserscan_.header.stamp = start_time_;
+        message_laserscan_.angle_min = -static_cast<float>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
+        message_laserscan_.angle_max =  static_cast<float>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
+        message_laserscan_.angle_increment = static_cast<float>(Sensor::AngleIncremet2D * Util::ToRadian);
+        message_laserscan_.scan_time = 0;
+        message_laserscan_.range_min = static_cast<float>(Distance::Mode2D::Minimum_Depth_2D * Util::MM_To_M);
+        message_laserscan_.range_max = static_cast<float>(Distance::Mode2D::Maximum_Depth_2D * Util::MM_To_M);
+        message_laserscan_.ranges.resize(cyg_driver::DATA_LENGTH_2D);
+        message_laserscan_.intensities.resize(cyg_driver::DATA_LENGTH_2D);
     }
 
     void Topic_2D::publishPoint2D(std::string frame_id_, ros::Publisher publisher_point_2d_, uint16_t *distance_buffer_2d_)
