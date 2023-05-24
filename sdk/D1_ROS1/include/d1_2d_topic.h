@@ -13,7 +13,7 @@ namespace D1
     class Topic_2D
     {
         public:
-            int buffer_index;
+            uint8_t buffer_index;
             uint16_t raw_distance;
             
             float camera_coordinate_x, camera_coordinate_y;
