@@ -5,7 +5,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "cyglidar_publisher");
     ros::NodeHandle nh;
 
-    CygLiDAR_D1 node(nh);
+    D1::CygLiDAR_D1 node(nh);
 
     ros::spin();
     ros::shutdown();
