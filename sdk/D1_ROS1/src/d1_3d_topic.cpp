@@ -4,7 +4,7 @@ namespace D1
 {
     using namespace CygLiDARD1;
 
-    void Topic_3D::publishScanImage(std::string frame_id, ros::Publisher publisher_image_, uint16_t *payload_data_buffer_3d)
+    void Topic_3D::publishScanImage(std::string frame_id, ros::Publisher publisher_image_, uint16_t *distance_buffer_3d_)
     {
         sensor_msgs::Image message_image;
 
