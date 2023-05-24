@@ -27,8 +27,11 @@ namespace D1
 
             float camera_coordinate_x, camera_coordinate_y, camera_coordinate_z;            
 
-            void publishScanImage(std::string frame_id_, ros::Publisher publisher_image_, uint16_t *payload_data_buffer_3d);
-            void publishPoint3D(std::string frame_id_, ros::Publisher publisher_point_3d_, PointCloudMaker &pointcloud_maker, uint16_t *payload_data_buffer_3d);
+            void publishScanImage(std::string frame_id, ros::Publisher publisher_image_, uint16_t *distance_buffer_3d_);
+            void assignImageData(std::string frame_id_, sensor_msgs::Image &message_image_);
+
+            void publishPoint3D(std::string frame_id_, ros::Publisher publisher_point_3d_, PointCloudMaker &pointcloud_maker, uint16_t *distance_buffer_3d_);
+            void asssignPointCloud3DPosition(pcl::PointCloud<pcl::PointXYZRGBA> &point_3d_, PointCloudMaker &pointcloud_maker_, uint16_t *distance_buffer_3d_);
     };
 }
 
