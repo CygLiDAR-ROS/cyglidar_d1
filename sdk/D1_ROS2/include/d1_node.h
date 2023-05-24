@@ -37,7 +37,6 @@ namespace D1
             rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr   publisher_laserscan;
             rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_point_2d;
             rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_point_3d;
-            rclcpp::TimerBase::SharedPtr timer_;
 
         public:
             explicit CygLiDAR_D1(std::string name_);
