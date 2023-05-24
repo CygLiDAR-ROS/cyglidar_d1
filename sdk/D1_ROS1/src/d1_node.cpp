@@ -6,7 +6,7 @@ namespace D1
 
     CygLiDAR_D1::CygLiDAR_D1(ros::NodeHandle nh_) : nh(nh_)
     {
-        publisher_laserscan  = nh.advertise<sensor_msgs::LaserScan>  ("scan",       1000);
+        publisher_laserscan  = nh.advertise<sensor_msgs::LaserScan>  ("scan",    1000);
         publisher_point_2d   = nh.advertise<sensor_msgs::PointCloud2>("scan_2D",    5);
         publisher_point_3d   = nh.advertise<sensor_msgs::PointCloud2>("scan_3D",    5);
         publisher_image      = nh.advertise<sensor_msgs::Image>      ("scan_image", 5);
@@ -20,17 +20,18 @@ namespace D1
     
     void CygLiDAR_D1::initParam()
     {
-        pointcloud_maker.initColorMap();
-        pointcloud_maker.initLensTransform(Sensor::PixelRealSize, Sensor::Width, Sensor::Height,
-                                           Parameter::OffsetCenterPoint_x, Parameter::OffsetCenterPoint_y);
-
         ros::NodeHandle priv_nh("~");
         priv_nh.param<std::string>("port", port, "/dev/ttyUSB0");
         priv_nh.param<int>("baud_rate", baud_rate, 3000000);
         priv_nh.param<std::string>("frame_id", frame_id, "laser_frame");
         priv_nh.param<int>("run_mode", run_mode, 2);
         priv_nh.param<int>("duration_mode", duration_mode, PULSE_AUTO);
-        priv_nh.param<int>("duration_value", duration_value, 10000);                                           
+        priv_nh.param<int>("duration_value", duration_value, 10000);          
+        
+        // Call the following function so as to store colors to draw 3D data
+        pointcloud_maker.initColorMap();
+        pointcloud_maker.initLensTransform(Sensor::PixelRealSize, Sensor::Width, Sensor::Height,
+                                           Parameter::OffsetCenterPoint_x, Parameter::OffsetCenterPoint_y);
     }
 
     void CygLiDAR_D1::onInit()
