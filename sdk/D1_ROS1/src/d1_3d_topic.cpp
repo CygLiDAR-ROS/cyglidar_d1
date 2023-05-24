@@ -36,39 +36,51 @@ namespace D1
 
     void Topic_3D::publishPoint3D(std::string frame_id_, ros::Publisher publisher_point_3d_, PointCloudMaker &pointcloud_maker, uint16_t *distance_buffer_3d_)
     {
-        pcl::PointCloud<pcl::PointXYZRGBA>::Ptr message_point_3d(new pcl::PointCloud<pcl::PointXYZRGBA>);
+        pcl::PointCloud<pcl::PointXYZRGBA> pointcloud_3d;
 
-        message_point_3d->header.frame_id = frame_id_;
-        message_point_3d->is_dense = false;
-        message_point_3d->width  = Sensor::Width;
-        message_point_3d->height = Sensor::Height;
-        message_point_3d->points.resize(cyg_driver::DATA_LENGTH_3D);
+        pointcloud_3d.header.frame_id = frame_id_;
+        pointcloud_3d.is_dense = false;
+        pointcloud_3d.width  = Sensor::Width;
+        pointcloud_3d.height = Sensor::Height;
+        pointcloud_3d.points.resize(cyg_driver::DATA_LENGTH_3D);
+
+        asssignPointCloud3DPosition(pointcloud_3d, pointcloud_maker, distance_buffer_3d_);
+       
+        pcl_conversions::toPCL(ros::Time::now(), pointcloud_3d.header.stamp);
+
+        publisher_point_3d_.publish(pointcloud_3d);
+    }
+    
+    void Topic_3D::asssignPointCloud3DPosition(pcl::PointCloud<pcl::PointXYZRGBA> &pointcloud_3d_, PointCloudMaker &pointcloud_maker_, uint16_t *distance_buffer_3d_)
+    {
+        color_gap = Distance::Mode3D::Maximum_Depth_3D / total_color_number;
 
         for (buffer_index = 0; buffer_index < Sensor::Height * Sensor::Width; buffer_index++)
         {
             raw_distance = distance_buffer_3d_[buffer_index];
+            
+            //Color arrangement changes with distance
+            new_color_3d = (int)((float)raw_distance / color_gap) >= total_color_number ? (total_color_number - 1) : (int)raw_distance / color_gap;
+            color_level = total_color_number - new_color_3d;
 
             if(raw_distance < Distance::Mode3D::Maximum_Depth_3D)
             {
-                pointcloud_maker.calcPointCloud(raw_distance, buffer_index, camera_coordinate_x, camera_coordinate_y, camera_coordinate_z);
+                pointcloud_maker_.calcPointCloud(raw_distance, buffer_index, camera_coordinate_x, camera_coordinate_y, camera_coordinate_z);
 
-                message_point_3d->points[buffer_index].x =  camera_coordinate_z * MM2M;
-                message_point_3d->points[buffer_index].y = -camera_coordinate_x * MM2M;
-                message_point_3d->points[buffer_index].z = -camera_coordinate_y * MM2M;
-                color_change_with_height = pointcloud_maker.color_map[((int)camera_coordinate_y / 2) % pointcloud_maker.color_map.size()];
-                message_point_3d->points[buffer_index].rgb = *reinterpret_cast<float*>(&color_change_with_height);
-                message_point_3d->points[buffer_index].a = 255;
-            }
+                pointcloud_3d_.points[buffer_index].x =  camera_coordinate_z * MM2M;
+                pointcloud_3d_.points[buffer_index].y = -camera_coordinate_x * MM2M;
+                pointcloud_3d_.points[buffer_index].z = -camera_coordinate_y * MM2M;
+                rgb_setup = pointcloud_maker_.color_map[color_level];
+                pointcloud_3d_.points[buffer_index].rgb = *reinterpret_cast<float*>(&rgb_setup);
+                pointcloud_3d_.points[buffer_index].a = 255;
+            }            
             else
             {
-                message_point_3d->points[buffer_index].x = 0;
-                message_point_3d->points[buffer_index].y = 0;
-                message_point_3d->points[buffer_index].z = 0;
-                message_point_3d->points[buffer_index].rgb = 0;
-                message_point_3d->points[buffer_index].a = 0;
+                pointcloud_3d_.points[buffer_index].x = 0;
+                pointcloud_3d_.points[buffer_index].y = 0;
+                pointcloud_3d_.points[buffer_index].z = 0;
+                pointcloud_3d_.points[buffer_index].rgba = 0;
             }
         }
-        pcl_conversions::toPCL(ros::Time::now(), message_point_3d->header.stamp);
-        publisher_point_3d_.publish(message_point_3d);
     }
 }
