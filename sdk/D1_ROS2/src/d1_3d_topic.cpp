@@ -50,7 +50,7 @@ namespace D1
         pcl_conversions::toPCL(rclcpp::Clock().now(), pointcloud_3d.header.stamp);
 
         sensor_msgs::msg::PointCloud2 message_point_cloud_3d;
-        pcl::toROSMsg(pointcloud_3d, message_point_cloud_3d);
+        pcl::toROSMsg(pointcloud_3d, message_point_cloud_3d); //change type from pointcloud(pcl) to ROS message(PointCloud2)        
         publisher_point_3d_->publish(message_point_cloud_3d);
     }
 
