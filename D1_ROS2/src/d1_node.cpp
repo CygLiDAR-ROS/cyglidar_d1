@@ -8,11 +8,11 @@ D1_Node::D1_Node(rclcpp::Node::SharedPtr _node) : node(_node)
     topic_2d = new Topic2D();
     topic_3d = new Topic3D();
 
-    topic_2d->initPublisher(node->create_publisher<sensor_msgs::msg::LaserScan>  ("scan", 1000),
-                            node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_2D", 5));
+    topic_2d->initPublisher(node->create_publisher<sensor_msgs::msg::LaserScan>  ("scan",    10),
+                            node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_2D", 10));
 
-    topic_3d->initPublisher(node->create_publisher<sensor_msgs::msg::Image>      ("scan_image", 5),
-                            node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_3D",    5));
+    topic_3d->initPublisher(node->create_publisher<sensor_msgs::msg::Image>      ("scan_image", 10),
+                            node->create_publisher<sensor_msgs::msg::PointCloud2>("scan_3D",    10));
 
     received_buffer[0].packet_data = first_total_packet_data;
     received_buffer[1].packet_data = second_total_packet_data;
