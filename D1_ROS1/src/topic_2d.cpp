@@ -11,9 +11,9 @@ void Topic2D::initPublisher(ros::Publisher _publisher_laserscan, ros::Publisher 
 void Topic2D::assignLaserScan(std::string _frame_id)
 {
     message_laserscan.header.frame_id = _frame_id;
-    message_laserscan.angle_min = -static_cast<float>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
-    message_laserscan.angle_max =  static_cast<float>(Sensor::HorizontalAngle / 2.0f * Util::ToRadian);
-    message_laserscan.angle_increment = static_cast<float>(Sensor::AngleIncremet2D * Util::ToRadian);
+    message_laserscan.angle_min = -Sensor::HorizontalAngle / 2.0f * Util::ToRadian;
+    message_laserscan.angle_max =  Sensor::HorizontalAngle / 2.0f * Util::ToRadian;
+    message_laserscan.angle_increment = Sensor::AngleIncremet2D * Util::ToRadian;
     message_laserscan.scan_time = 0;
     message_laserscan.range_min = static_cast<float>(Distance::Mode2D::Minimum_Depth_2D * Util::MM_To_M);
     message_laserscan.range_max = static_cast<float>(Distance::Mode2D::Maximum_Depth_2D * Util::MM_To_M);
