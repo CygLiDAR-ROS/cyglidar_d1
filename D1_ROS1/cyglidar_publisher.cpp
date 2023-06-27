@@ -8,6 +8,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     D1_node = new D1_Node(nh);
+    
     try
     {
         D1_node->connectBoostSerial();
