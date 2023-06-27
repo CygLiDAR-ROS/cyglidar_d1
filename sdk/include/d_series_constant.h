@@ -10,7 +10,7 @@ typedef struct ColorCodeRGB
 	uint8_t B;
 }ColorCode_t;
 
-namespace CygLiDARD1
+namespace Constant_D1
 {
 	namespace Sensor
 	{
