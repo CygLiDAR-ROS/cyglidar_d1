@@ -27,7 +27,7 @@ sudo apt install ros-melodic-pcl-ros
 ### Installation Udev
 Install the udev rule
 ```bash
-roscd cyglidar_d1
+roscd cyglidar_d1_ros1
 cd scripts
 chmod +x create_udev_rules.sh
 ./create_udev_rules.sh
