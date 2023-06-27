@@ -62,8 +62,8 @@ void Topic2D::publishPoint2D(uint16_t *_distance_buffer_2d)
 
 void Topic2D::mappingPointCloud2D(uint16_t *_distance_buffer_2d)
 {
-    float point_2d_angle;
-    float point_2d_angle_variable;
+    float point_2d_angle = 0;
+    float point_2d_angle_variable = 0;
 
     for (uint8_t i = 0; i < cyg_driver::DATA_LENGTH_2D; i++)
     {
