@@ -1,6 +1,6 @@
 #include "serial.h"
 
-using namespace CygLiDARD1::Command;
+using namespace Constant_D1::Command;
 
 cyglidar_serial::cyglidar_serial(const std::string& port_, uint32_t baud_rate_, boost::asio::io_service& io_)
     :port(port_), baud_rate(baud_rate_), serial(io_, port_)
