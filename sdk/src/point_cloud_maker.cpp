@@ -31,14 +31,14 @@ void PointCloudMaker::initLensTransform(const float sensor_point_size_mm_, const
 
 			if (angle_grad > max_check) max_check = angle_grad;
 
-			angle_rad = angle_grad * CygLiDARD1::Util::ToRadian;
+			angle_rad = angle_grad * Constant_D1::Util::ToRadian;
 
 			float rp  = sqrtf((column * column) + (row * row));
 			float rUA = sinf(angle_rad);
 
-			table_x[x + (y * CygLiDARD1::Sensor::Width)] = column * rUA / rp;
-			table_y[x + (y * CygLiDARD1::Sensor::Width)] = row * rUA / rp;
-			table_z[x + (y * CygLiDARD1::Sensor::Width)] = cosf(angle_rad);
+			table_x[x + (y * Constant_D1::Sensor::Width)] = column * rUA / rp;
+			table_y[x + (y * Constant_D1::Sensor::Width)] = row * rUA / rp;
+			table_z[x + (y * Constant_D1::Sensor::Width)] = cosf(angle_rad);
 		}
 	}
 }
