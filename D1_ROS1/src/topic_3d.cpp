@@ -66,8 +66,7 @@ void Topic3D::mappingPointCloud3D(uint16_t *_distance_buffer_3d)
         raw_distance = _distance_buffer_3d[buffer_index];
 
         //Color arrangement changes with distance
-        new_color_3d = (int)((float)raw_distance / color_gap) >= total_color_number ? (total_color_number - 1) : (int)raw_distance / color_gap;
-        color_level = total_color_number - new_color_3d;
+        color_level = (int)((float)raw_distance / color_gap) >= total_color_number ? (total_color_number - 1) : (int)raw_distance / color_gap;
 
         if(raw_distance < Distance::Mode3D::Maximum_Depth_3D)
         {
