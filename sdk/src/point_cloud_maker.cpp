@@ -82,30 +82,29 @@ float PointCloudMaker::getAngle(const float x_, const float y_, const float sens
 
 void PointCloudMaker::initColorMap()
 {
-	uint8_t r_setup = 255;
+	uint8_t r_setup = 0;
 	uint8_t g_setup = 0;
-	uint8_t b_setup = 0;
+	uint8_t b_setup = 255;
 
     // Iterate for-loop of adding RGB value to an array
 	for (int i = 0; i < 3; i++)
 	{
 		for (int color_count = 0; color_count < 256; color_count++)
 		{
-			switch (i)
-			{
-			case 0: // RED -> YELLOW
-				g_setup++;
-				break;
-			case 1: // YELLOW -> BLUE
-				r_setup--;
-				g_setup--;
-				b_setup++;
-				break;
-			case 2: // BLUE -> RED
+			case 0: // BLUE -> YELLOW
+			case 3:
 				r_setup++;
+				g_setup++;
 				b_setup--;
 				break;
-			}
+			case 1: // YELLOW -> RED
+			case 4:
+				g_setup--;
+				break;
+			case 2: // RED -> BLUE
+				r_setup--;
+				b_setup++;
+				break;
 
 			uint32_t rgb_setup = ((uint32_t)r_setup << 16 | (uint32_t)g_setup << 8 | (uint32_t)b_setup);
 			color_map.push_back(rgb_setup);
