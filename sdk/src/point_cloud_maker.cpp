@@ -89,7 +89,7 @@ void PointCloudMaker::initColorMap()
     // Iterate for-loop of adding RGB value to an array
 	for (int i = 0; i < 3; i++)
 	{
-		for (int color_count = 0; color_count < 256; color_count++)
+		for (int color_count = 0; color_count < 255; color_count++)
 		{
 			switch (i)
 			{
