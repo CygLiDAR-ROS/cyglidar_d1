@@ -34,14 +34,15 @@ class Topic3D
         sensor_msgs::Image message_image;
         pcl::PointCloud<pcl::PointXYZRGBA> pcl_3d;
 
-        uint16_t buffer_index;
-        uint16_t raw_distance;
+        uint16_t  buffer_index;
+        uint16_t  raw_distance;
         uint16_t *depth_data;
+        uint16_t  color_level;
+        uint16_t  total_color_number = 510; //color map array's total size is 510
+        uint32_t  rgb_setup;
+
         const uint16_t bad_point = 0;
 
-        uint16_t new_color_3d, color_level;
-        uint16_t total_color_number = 511; //color map array's total size is 511
-        uint32_t rgb_setup;
         float color_gap;
         float camera_coordinate_x, camera_coordinate_y, camera_coordinate_z;
         float param_x[Constant_D1::Sensor::numPixel];
