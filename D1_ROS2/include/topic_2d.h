@@ -28,9 +28,9 @@ class Topic2D
     private:
         rclcpp::Publisher<LaserScan>::SharedPtr   publisher_laserscan;
         rclcpp::Publisher<PointCloud2>::SharedPtr publisher_point_2d;
-        LaserScan message_laserscan;
-        PointCloud2 message_point_cloud_2d;
-        pcl_XYZRGBA pcl_2d;
+        std::shared_ptr<LaserScan>   message_laserscan;
+        std::shared_ptr<PointCloud2> message_point_cloud_2d;
+        std::shared_ptr<pcl_XYZRGBA> pcl_2d;
 
         uint8_t buffer_index;
         uint16_t raw_distance;
