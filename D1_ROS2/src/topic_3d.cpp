@@ -72,9 +72,9 @@ void Topic3D::mappingPointCloud3D(uint16_t *_distance_buffer_3d)
         {
             pointcloud_maker->calcPointCloud(raw_distance, buffer_index, camera_coordinate_x, camera_coordinate_y, camera_coordinate_z);
 
-            pcl_3d.points[buffer_index].x = camera_coordinate_z * MM2M;
-            pcl_3d.points[buffer_index].y = -camera_coordinate_x * MM2M;
-            pcl_3d.points[buffer_index].z = -camera_coordinate_y * MM2M;
+            pcl_3d.points[buffer_index].x = camera_coordinate_z * Util::MM_To_M;
+            pcl_3d.points[buffer_index].y = -camera_coordinate_x * Util::MM_To_M;
+            pcl_3d.points[buffer_index].z = -camera_coordinate_y * Util::MM_To_M;
             rgb_setup = pointcloud_maker->color_map[color_level];
             pcl_3d.points[buffer_index].rgb = *reinterpret_cast<float *>(&rgb_setup);
             pcl_3d.points[buffer_index].a = 255;
