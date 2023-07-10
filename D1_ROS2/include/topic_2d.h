@@ -34,8 +34,9 @@ class Topic2D
 
         uint8_t buffer_index;
         uint16_t raw_distance;
-        const float angle_increment_steps = Constant_D1::Sensor::AngleIncremet2D;
         float camera_coordinate_x, camera_coordinate_y;
+        const float angle_increment_steps = Constant_D1::Sensor::AngleIncremet2D;
+        const float HORIZONTAL_ANGLE = 120.0f;
 };
 
 
