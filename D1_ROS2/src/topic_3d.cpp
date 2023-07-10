@@ -62,7 +62,7 @@ void Topic3D::assignPCL3D(std::string frame_id_)
 
 void Topic3D::mappingPointCloud3D(uint16_t *_distance_buffer_3d)
 {
-    pcl_conversions::toPCL(rclcpp::Clock().now(), pcl_3d.header.stamp);
+    pcl_conversions::toPCL(rclcpp::Clock().now(), pcl_3d->header.stamp);
 
     color_gap = Distance::Mode3D::Maximum_Depth_3D / total_color_number;
 
