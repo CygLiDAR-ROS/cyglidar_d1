@@ -10,7 +10,7 @@ void Topic2D::initPublisher(ros::Publisher _publisher_laserscan, ros::Publisher 
 
 void Topic2D::assignLaserScan(std::string _frame_id)
 {
-    message_laserscan = std::make_shared<LaserScan>();
+    message_laserscan = std::make_shared<sensor_msgs::LaserScan>();
 
     message_laserscan->header.frame_id = _frame_id;
     message_laserscan->angle_min = -Sensor::HorizontalAngle / 2.0f * Util::ToRadian;
