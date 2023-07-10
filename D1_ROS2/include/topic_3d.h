@@ -34,9 +34,9 @@ class Topic3D
         rclcpp::Publisher<Image>::SharedPtr       publisher_image;
         rclcpp::Publisher<PointCloud2>::SharedPtr publisher_point_3d;
 
-        Image       message_image;
-        PointCloud2 message_point_cloud_3d;
-        pcl_XYZRGBA pcl_3d;
+        std::shared_ptr<Image>       message_image;
+        std::shared_ptr<PointCloud2> message_point_cloud_3d;
+        std::shared_ptr<pcl_XYZRGBA> pcl_3d;
 
         const uint16_t bad_point = 0;        
         uint16_t  buffer_index;
