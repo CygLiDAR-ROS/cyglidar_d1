@@ -77,8 +77,6 @@ class D1_Node
         const uint8_t PACKET_HEADER_2D       = 0x01;
         const uint8_t PACKET_HEADER_3D       = 0x08;
         const uint8_t PACKET_HEADER_DEV_INFO = 0x10;
-
 };
-
 
 #endif
