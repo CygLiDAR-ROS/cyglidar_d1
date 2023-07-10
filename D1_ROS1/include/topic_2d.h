@@ -1,15 +1,15 @@
 #ifndef __D1_2D_TOPIC_H
 #define __D1_2D_TOPIC_H
 
-#include "d_series_constant.h"
-#include "cyglidar_driver.h"
-#include "serial.h"
-
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
+
+#include "d_series_constant.h"
+#include "cyglidar_driver.h"
+#include "serial.h"
 
 class Topic2D
 {
@@ -26,14 +26,14 @@ class Topic2D
     private:
         ros::Publisher publisher_laserscan;
         ros::Publisher publisher_point_2d;
-        sensor_msgs::LaserScan message_laserscan;
-        pcl::PointCloud<pcl::PointXYZRGBA> pcl_2d;
+        std::shared_ptr<sensor_msgs::LaserScan> message_laserscan;
+        std::shared_ptr<pcl::PointCloud<pcl::PointXYZRGBA>> pcl_2d;
 
         uint8_t buffer_index;
         uint16_t raw_distance;
-        const float angle_increment_steps = Constant_D1::Sensor::AngleIncremet2D;
         float camera_coordinate_x, camera_coordinate_y;
-
+        const float angle_increment_steps = Constant_D1::Sensor::AngleIncremet2D;
+        const float HORIZONTAL_ANGLE = 120.0f;
 };
 
 #endif
