@@ -38,24 +38,6 @@ class D1_Node
         Topic2D *topic_2d;
         Topic3D *topic_3d;
 
-        rclcpp::Node::SharedPtr node;
-        rclcpp::Time scan_start_time;
-
-        boost::asio::io_service io;
-
-        std::shared_future<void> future;
-        std::promise<void> exit_signal;
-
-        std::thread publish_thread;
-
-        uint8_t publish_done_flag  = 0;
-        uint8_t publish_data_state = 0;
-        const uint8_t PUBLISH_DONE = 0;
-        const uint8_t PUBLISH_2D   = 1;
-        const uint8_t PUBLISH_3D   = 2;
-
-        uint8_t double_buffer_index;
-
         std::string port;
         int baud_rate;
         std::string frame_id;
@@ -64,14 +46,38 @@ class D1_Node
         int duration_value;
         int frequency_channel;
 
+        rclcpp::Node::SharedPtr node;
+        rclcpp::Time scan_start_time;
+
+        boost::asio::io_service io;
+
+        std::thread publish_thread;
+        std::shared_future<void> future;
+        std::promise<void> exit_signal;
+
+        uint8_t publish_done_flag  = 0;
+        uint8_t publish_data_state = 0;
+        uint8_t double_buffer_index;
         uint8_t first_total_packet_data[SCAN_MAX_SIZE];
         uint8_t second_total_packet_data[SCAN_MAX_SIZE];
         uint8_t packet_structure[SCAN_MAX_SIZE];
+        uint8_t parser_return;
 
+        uint16_t number_of_data;
         uint16_t distance_buffer_2d[cyg_driver::DATA_LENGTH_2D];
         uint16_t distance_buffer_3d[cyg_driver::DATA_LENGTH_3D];
-        uint16_t number_of_data;
-        uint8_t parser_return;
+
+        const uint8_t PUBLISH_DONE = 0;
+        const uint8_t PUBLISH_2D   = 1;
+        const uint8_t PUBLISH_3D   = 2;
+
+        const uint8_t PAYLOAD_HEADER = 5;
+        const uint8_t PAYLOAD_DATA   = 6;
+
+        const uint8_t PACKET_HEADER_2D       = 0x01;
+        const uint8_t PACKET_HEADER_3D       = 0x08;
+        const uint8_t PACKET_HEADER_DEV_INFO = 0x10;
+
 };
 
 
