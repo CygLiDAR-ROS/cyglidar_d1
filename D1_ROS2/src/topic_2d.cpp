@@ -32,7 +32,7 @@ void Topic2D::publishScanLaser(rclcpp::Time _start_time, uint16_t *_distance_buf
 
         if (_distance_buffer_2d[buffer_index] < Distance::Mode2D::Maximum_Depth_2D)
         {
-            message_laserscan.ranges[i] = _distance_buffer_2d[buffer_index] * MM2M;
+            message_laserscan.ranges[i] = _distance_buffer_2d[buffer_index] * Util::MM_To_M;
         }
         else
         {
@@ -77,8 +77,8 @@ void Topic2D::mappingPointCloud2D(uint16_t *_distance_buffer_2d)
         camera_coordinate_x = (sin(point_2d_angle) * raw_distance);
         camera_coordinate_y = (cos(point_2d_angle) * raw_distance);
 
-        pcl_2d.points[i].x = camera_coordinate_y * MM2M;
-        pcl_2d.points[i].y = camera_coordinate_x * MM2M;
+        pcl_2d.points[i].x = camera_coordinate_y * Util::MM_To_M;
+        pcl_2d.points[i].y = camera_coordinate_x * Util::MM_To_M;
         pcl_2d.points[i].z = 0.0;
 
         if (_distance_buffer_2d[buffer_index] < Distance::Mode2D::Maximum_Depth_2D)
