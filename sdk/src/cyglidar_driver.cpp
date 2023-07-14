@@ -5,7 +5,7 @@ namespace cyg_driver
     // Convert 2D, 3D rawdata to measured distance appending both separated data (LSB and MSB)
     void TransformPayload::getDistanceArray2D(uint8_t *payload_data_buffer_2d_, uint16_t *distance_2d_)
     {
-        uint8_t distance_count_2d;
+        uint8_t distance_count_2d = 0;
 
         for (int data_length = 0; data_length < PACKET_LENGTH_2D - 1; data_length += 2)
         {
@@ -20,7 +20,7 @@ namespace cyg_driver
 
     void TransformPayload::getDistanceArray3D(uint8_t *payload_data_buffer_3d_, uint16_t *distance_3d_)
     {
-        uint16_t distance_count_3d;
+        uint16_t distance_count_3d = 0;
 
         for (int data_length = 0; data_length < PACKET_LENGTH_3D - 1; data_length += 3)
         {
