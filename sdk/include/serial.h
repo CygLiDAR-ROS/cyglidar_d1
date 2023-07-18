@@ -66,6 +66,11 @@ class cyglidar_serial
         void requestDeviceInfo();
 
         /**
+            * @brief Send a packet to change baud rate setting
+            */
+        void requestSerialBaudRate(const uint8_t _select_baud_rate);
+
+        /**
             * @brief Close the driver down and prevent the polling loop from advancing
             */
         void close();
