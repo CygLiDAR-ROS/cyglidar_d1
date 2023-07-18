@@ -49,7 +49,7 @@ ros2 launch cyglidar_d1_ros2 view_cyglidar.launch.py  (Run with Rviz)
 
 #1 When CyglidarNode Error Occured
 >[Error] : An exception was thrown [open : Permission denied]
-
+Please check 'Installation Udev' Or use following command.
 ```bash
 sudo chmod 777 /dev/ttyUSB0
 ```
@@ -74,3 +74,45 @@ In Rviz, the fixed frame and the topics for Point Cloud are as follows:
 /scan_3D    (PointCloud XYZRGBA)
 /scan_image (Image)
 ```
+
+### Usage SDK
+##### LINUX
+Change Directory to 'cyglidar_d1/sdk' 
+```
+cmake .
+make
+./sdk_main
+```
+
+##### WINDOW
+Unlike Linux, you have to check 'CMake' and 'Boost' libraries. Not installed yet, please visit below websites.
+> https://cmake.org/download/
+> https://www.boost.org/users/download/
+
+All set-up prepared, Change Directory to 'cyglidar_d1/sdk' 
+Using 'cmd' or 'powershell', put command below as Linux.
+```
+cmake .
+make
+```
+If build successfully, Multiple files are created. Then click solution file as 'sdk_main.sln'
+<h1 align="left">
+  <img src="screenshots/window_cmake_list.png" width="300"/>
+</h1>
+
+At the Solution Explorer, remove 'ALL_BUILD'
+<h1 align="left">
+  <img src="screenshots/remove_all_build.png" width="600"/>
+</h1>
+
+After some varibles revise, you can operate sdk code.
+<h1 align="left">
+  <img src="screenshots/window_operation.png" width="800"/>
+</h1>
+
+#1 When Exception 'kernalbase.pdb not loaded' Occured
+When you put 'Ctrl + C' for shutting down program, Exception will occur.
+This is an error caused by the generation of debug key values, but there is no problem with the operation of the program, so you can check and use it as below.
+<h1 align="left">
+  <img src="screenshots/kernalbase_exception.png" width="800"/>
+</h1>
