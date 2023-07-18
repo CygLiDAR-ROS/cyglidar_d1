@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-set(PROJECTNAME "cyglidar_d1_ros1")
-project(${PROJECTNAME} CXX C)
+project(cyglidar_d1_ros1)
 
 set(extra_flags -std=c++11 -Werror -Wall -Wextra)
 set(CMAKE_CXX_FLGAS "-std=c++11 -03")
@@ -30,11 +29,11 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(PCL 1.2 REQUIRED)
 
 include_directories(
+    ${CYGLIDAR_ROS_PATH}/include
     ${CYGLIDAR_SDK_PATH}/include
-    ${CYGLIDAR_SDK_PATH}/src
     ${catkin_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
-    ${CYGLIDAR_ROS_PATH}/include
+    ${Boost_INCLUDE_DIRS}
 )
 
 catkin_package()
@@ -49,12 +48,21 @@ add_executable(cyglidar_publisher
     ${CYGLIDAR_ROS_SRC}
 )
 
-add_dependencies(cyglidar_publisher ${PROJECT_NAME}_generate_messages_cpp)
-
 target_link_libraries(cyglidar_publisher
-    ${PROJECT_NAME}
     ${catkin_LIBRARIES}
-    ${PCL_LIBRARIES})
+    ${PCL_LIBRARIES}
+    ${Boost_LIBRARIES}
+)
+
+add_executable(baudrate_changer
+    ${CYGLIDAR_ROS_PATH}/baudrate_changer.cpp
+    ${CYGLIDAR_D_SRC}
+)
+
+target_link_libraries(baudrate_changer
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+)
 
 install(TARGETS cyglidar_publisher
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -62,5 +70,12 @@ install(TARGETS cyglidar_publisher
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(TARGETS baudrate_changer
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 install(DIRECTORY launch rviz scripts
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
