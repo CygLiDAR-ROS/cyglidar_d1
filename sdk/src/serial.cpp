@@ -91,6 +91,17 @@ void cyglidar_serial::requestDeviceInfo()
     boost::asio::write(serial, boost::asio::buffer(command_buffer, device_info_command_totalsize));
 }
 
+void cyglidar_serial::requestSerialBaudRate(const uint8_t _select_baud_rate)
+{
+    payload_buffer[0] = Payload::Baudrate::PayloadHeader::SetSerialbaudrate;
+    payload_buffer[1] = _select_baud_rate;
+
+    makeCommand(command_buffer, payload_buffer, Payload::Baudrate::PayloadTotalSize);
+    uint16_t set_baud_rate_command_totalsize = (Payload::Baudrate::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
+
+    boost::asio::write(serial, boost::asio::buffer(command_buffer, set_baud_rate_command_totalsize));
+}
+
 void cyglidar_serial::close()
 {
     payload_buffer[0] = Payload::Stop::PayloadHeader::Stop;
