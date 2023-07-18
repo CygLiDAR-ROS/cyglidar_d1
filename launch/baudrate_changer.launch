@@ -1,0 +1,9 @@
+<launch>
+  <arg name="select_baud_rate_number" default="2" doc="version type [0, 1, 2]"/>   <!-- 0: 3,000,000, 1: 115,200, 2: 57,600 -->
+
+  <node name="baudrate_changer" pkg="cyglidar_d1_ros1" type="baudrate_changer" output="screen">
+    <param name="port"              value="/dev/ttyS7"/>
+    <param name="baud_rate"         value="3000000"/>
+    <param name="select_baud_rate"  value="$(arg select_baud_rate_number)"/>
+  </node>
+</launch>
