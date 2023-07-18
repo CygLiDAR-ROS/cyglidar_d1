@@ -1,118 +1,86 @@
-# cyglidar_d1(ROS2 in Ubuntu 20.04)
-cyglidar_d1 is a ROS package, which is designed to visualize 2D/3D distance dataset in real-time.
-For more details in CygLiDAR, please visit http://www.cygbot.com
+cmake_minimum_required(VERSION 3.5)
 
-## How to use this package
+project(cyglidar_d1_ros2)
 
-### Preparation
-```bash
-mkdir -p ~/cyglidar_ws/src/
-cd ~/cyglidar_ws/src/
-git clone -b ROS2-v0.3.0 https://github.com/CygLiDAR-ROS/cyglidar_d1.git
-cd ..
-colcon build
-```
-* When CMake Error Occured as below
->pcl_conversionsConfig.cmake / pcl_conversions-config.cmake
+if(NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 14)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic -O3)
+endif()
 
-```bash
-sudo apt install ros-{ROS2 Ver Name}-pcl-conversions
-```
+set(CYGLIDAR_SDK_PATH "./sdk/")
+FILE(GLOB CYGLIDAR_D_SRC
+    "${CYGLIDAR_SDK_PATH}/src/*.cpp"
+    "${CYGLIDAR_SDK_PATH}/src/*.c"
+)
 
-### Installation Udev
-Install the udev rule
-```bash
-cd ~/cyglidar_ws/src/cyglidar_d1/scripts
-chmod +x create_udev_rules.sh
-./create_udev_rules.sh
-```
+set(CYGLIDAR_ROS_PATH "./D1_ROS2/")
+FILE(GLOB CYGLIDAR_ROS_SRC
+    "${CYGLIDAR_ROS_PATH}/src/*.cpp"
+)
 
-### Parameters in 'cyglidar.launch.py' File
-In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D and Dual(2D/3D)
+find_package(ament_cmake REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(PCL REQUIRED QUIET COMPONENTS core features filters io segmentation surface)
 
-And the others can be switched respectively as below:
-<h1 align="left">
-  <img src="screenshots/launch_parameter.png" width="800"/>
-</h1>
+include_directories(${CYGLIDAR_SDK_PATH}/include ${CYGLIDAR_ROS_PATH}/include)
 
-### Topic Image Updated
-<h1 align="left">
-  <img src="screenshots/image_view.png" width="800"/>
-</h1>
-The measured distance datas in Rviz can be viewed as an 'Image Topic(MONO16)'. You can adjust the min/max value to specify a view based on distance.
+add_library(${PROJECT_NAME} ${CYGLIDAR_SDK_PATH}/src/cygparser.c)
 
-### Run CyglidarNode and View in the Rviz
-```bash
-ros2 launch cyglidar_d1_ros2 cyglidar.launch.py
-ros2 launch cyglidar_d1_ros2 view_cyglidar.launch.py  (Run with Rviz)
-```
+link_directories(${PCL_LIBRARY_DIRS})
 
-#1 When CyglidarNode Error Occured
->[Error] : An exception was thrown [open : Permission denied]
-Please check 'Installation Udev' Or use following command.
-```bash
-sudo chmod 777 /dev/ttyUSB0
-```
+add_executable(cyglidar_d1_publisher
+    ${CYGLIDAR_ROS_PATH}/cyglidar_publisher.cpp
+    ${CYGLIDAR_ROS_SRC}
+    ${CYGLIDAR_D_SRC}
+)
 
-### Note
-In Rviz, the fixed frame and the topics for Point Cloud are as follows:
+ament_target_dependencies(cyglidar_d1_publisher
+    rclcpp
+    std_msgs
+    sensor_msgs
+    Boost
+    PCL
+)
 
-##### Frame ID
-```bash
-/laser_frame
-```
+add_executable(baudrate_changer
+    ${CYGLIDAR_ROS_PATH}/baudrate_changer.cpp
+    ${CYGLIDAR_D_SRC}
+)
 
-##### Fixed Frame
-```bash
-/map
-```
+target_link_libraries(baudrate_changer
+    ${CYGPARSER_LIB}
+)
 
-##### Cyglidar Topic List
-```bash
-/scan       (LaserScan)
-/scan_2D    (PointCloud XYZRGBA)
-/scan_3D    (PointCloud XYZRGBA)
-/scan_image (Image)
-```
+ament_target_dependencies(baudrate_changer
+    rclcpp
+    std_msgs
+    Boost
+)
 
-### Usage SDK
-##### LINUX
-Change Directory to 'cyglidar_d1/sdk' 
-```
-cmake .
-make
-./sdk_main
-```
+install(TARGETS cyglidar_d1_publisher
+    DESTINATION lib/${PROJECT_NAME}
+)
 
-##### WINDOW
-Unlike Linux, you have to check 'CMake' and 'Boost' libraries. Not installed yet, please visit below websites.
-> https://cmake.org/download/
-> https://www.boost.org/users/download/
+install(TARGETS baudrate_changer
+    DESTINATION lib/${PROJECT_NAME}
+)
 
-All set-up prepared, Change Directory to 'cyglidar_d1/sdk' 
-Using 'cmd' or 'powershell', put command below as Linux.
-```
-cmake .
-make
-```
-If build successfully, Multiple files are created. Then click solution file as 'sdk_main.sln'
-<h1 align="left">
-  <img src="screenshots/window_cmake_list.png" width="400"/>
-</h1>
+install(DIRECTORY ${CYGLIDAR_SDK_PATH}/include ${CYGLIDAR_ROS_PATH}/include
+    DESTINATION include)
 
-At the Solution Explorer, remove 'ALL_BUILD'
-<h1 align="left">
-  <img src="screenshots/remove_all_build.png" width="500"/>
-</h1>
+install(DIRECTORY launch rviz scripts
+    DESTINATION share/${PROJECT_NAME}
+)
 
-After some varibles revise, you can operate sdk code.
-<h1 align="left">
-  <img src="screenshots/window_operation.png" width="800"/>
-</h1>
-
-#1 When Exception 'kernalbase.pdb not loaded' Occured
-When you put 'Ctrl + C' for shutting down program, Exception will occur.
-This is an error caused by the generation of debug key values, but there is no problem with the operation of the program, so you can check and use it as below.
-<h1 align="left">
-  <img src="screenshots/kernalbase_exception.png" width="800"/>
-</h1>
+ament_export_include_directories(include)
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(Boost)
+ament_export_dependencies(PCL)
+ament_package()
