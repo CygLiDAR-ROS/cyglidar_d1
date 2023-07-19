@@ -23,7 +23,6 @@ sudo apt install ros-noetic-pcl-ros
 sudo apt install ros-melodic-pcl-conversions
 sudo apt install ros-melodic-pcl-ros
 ```
-
 ### Installation Udev
 Install the udev rule
 ```bash
@@ -50,6 +49,21 @@ And the others can be switched respectively as below:
 roslaunch cyglidar_d1_ros1 cyglidar.launch
 roslaunch cyglidar_d1_ros1 view_cyglidar.launch  (Run with Rviz)
 ```
+
+### Run Baudrate Changer
+Using 'baudrate_changer.launch', You can change baudrate. ***(B250,000 not available in ROS)***
+After set cyglidar's current baud rate("current_baud_rate"), change "select_baud_rate" value.
+Then, the LED will blink one time. That means the value is stored in flash ROM and
+ device is rebooted.
+ 
+```bash
+roslaunch cyglidar_d1_ros1 baudrate_changer.launch
+```
+
+<h1 align="left">
+  <img src="screenshots/baudrate_launch.png" width="800"/>
+</h1>
+
 ### Topic Image Updated
 <h1 align="left">
   <img src="screenshots/image_view.png" width="800"/>
