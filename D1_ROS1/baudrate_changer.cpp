@@ -8,7 +8,7 @@ class BaudrateChangerNode
         {
             ros::NodeHandle priv_nh("~");
             priv_nh.param<std::string>("port", port, "/dev/ttyUSB0");
-            priv_nh.param<int>("baud_rate", baud_rate, 3000000);
+            priv_nh.param<int>("current_baud_rate", baud_rate, 3000000);
             priv_nh.param<int>("select_baud_rate", select_baud_rate, 2);
         }
 
