@@ -3,7 +3,7 @@
 
   <node name="baudrate_changer" pkg="cyglidar_d1_ros1" type="baudrate_changer" output="screen">
     <param name="port"              value="/dev/ttyUSB0"/>
-    <param name="baud_rate"         value="3000000"/>
+    <param name="current_baud_rate" value="3000000"/>
     <param name="select_baud_rate"  value="$(arg select_baud_rate_number)"/>
   </node>
 </launch>
