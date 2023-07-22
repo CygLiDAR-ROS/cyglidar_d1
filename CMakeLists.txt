@@ -48,26 +48,7 @@ ament_target_dependencies(cyglidar_d1_publisher
     PCL
 )
 
-add_executable(baudrate_changer
-    ${CYGLIDAR_ROS_PATH}/baudrate_changer.cpp
-    ${CYGLIDAR_D_SRC}
-)
-
-target_link_libraries(baudrate_changer
-    ${CYGPARSER_LIB}
-)
-
-ament_target_dependencies(baudrate_changer
-    rclcpp
-    std_msgs
-    Boost
-)
-
 install(TARGETS cyglidar_d1_publisher
-    DESTINATION lib/${PROJECT_NAME}
-)
-
-install(TARGETS baudrate_changer
     DESTINATION lib/${PROJECT_NAME}
 )
 
