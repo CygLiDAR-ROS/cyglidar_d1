@@ -47,18 +47,6 @@ ros2 launch cyglidar_d1_ros2 cyglidar.launch.py
 ros2 launch cyglidar_d1_ros2 view_cyglidar.launch.py  (Run with Rviz)
 ```
 
-### Run Baudrate Changer
-Using 'baudrate_changer.launch.py', You can change baudrate. ***(B250,000 not available in ROS)***
-After set cyglidar's current baud rate("current_baud_rate"), change "select_baud_rate" value.
-Then, the LED will blink one time. That means the value is stored in flash ROM and
- device is rebooted.
-```bash
-ros2 launch cyglidar_d1_ros2 baudrate_changer.launch.py
-```
-<h1 align="left">
-  <img src="screenshots/baudrate_changer.png" width="600"/>
-</h1>
-
 #1 When CyglidarNode Error Occured
 >[Error] : An exception was thrown [open : Permission denied]
 Please check 'Installation Udev' Or use following command.
