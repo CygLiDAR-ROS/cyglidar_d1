@@ -108,7 +108,7 @@ At the Solution Explorer, remove 'ALL_BUILD'
   <img src="screenshots/remove_all_build.png" width="600"/>
 </h1>
 
-After some variables revise, you can operate sdk code.
+After some variables(like 'Port Number') revise, you can operate sdk code.
 <h1 align="left">
   <img src="screenshots/window_operation.png" width="800"/>
 </h1>
