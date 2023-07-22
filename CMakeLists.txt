@@ -54,23 +54,7 @@ target_link_libraries(cyglidar_publisher
     ${Boost_LIBRARIES}
 )
 
-add_executable(baudrate_changer
-    ${CYGLIDAR_ROS_PATH}/baudrate_changer.cpp
-    ${CYGLIDAR_D_SRC}
-)
-
-target_link_libraries(baudrate_changer
-    ${catkin_LIBRARIES}
-    ${Boost_LIBRARIES}
-)
-
 install(TARGETS cyglidar_publisher
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(TARGETS baudrate_changer
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
