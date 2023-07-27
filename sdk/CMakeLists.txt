@@ -20,26 +20,24 @@ FILE(GLOB CYGLIDAR_D_SRC
     ./src/cygparser.c
 )
 
-find_package(Boost REQUIRED COMPONENTS system)
+if(WIN32)
+    find_package(Boost REQUIRED COMPONENTS)
 
-if(Boost_FOUND)
-    if(WIN32)
-        include_directories(include ${Boost_INCLUDE_DIRS})
+    include_directories(include ${Boost_INCLUDE_DIRS})
 
-        add_executable(${PROJECT_NAME}
-            sdk_main.cpp
-            ${CYGLIDAR_D_SRC})
+    add_executable(${PROJECT_NAME}
+        sdk_main.cpp
+        ${CYGLIDAR_D_SRC})
 
-        target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-    elseif(UNIX)
-        include_directories(include ${Boost_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+elseif(UNIX)
+    find_package(Boost REQUIRED COMPONENTS system)
 
-        add_executable(${PROJECT_NAME}
-            sdk_main.cpp
-            ${CYGLIDAR_D_SRC})
+    include_directories(include ${Boost_INCLUDE_DIRS})
 
-        target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-    endif()
-else()
-    message(STATUS "Failed to Find Boost Library")
+    add_executable(${PROJECT_NAME}
+        sdk_main.cpp
+        ${CYGLIDAR_D_SRC})
+
+    target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 endif()
