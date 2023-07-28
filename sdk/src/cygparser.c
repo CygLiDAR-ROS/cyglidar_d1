@@ -95,7 +95,7 @@ uint8_t CygParser(uint8_t *command_buffer, uint8_t packet_data)
 		break;
 	case Length2:
 		command_buffer[POS_LENGTH_2] = packet_data;
-		payload_size = ((command_buffer[POS_LENGTH_2] << 8) & 0xff00) | (command_buffer[POS_LENGTH_1] & 0x00ff); // 길이 조건의 유연성도 주면 좋고? rplidar의 패킷 데이터와 비교해보자
+		payload_size = ((command_buffer[POS_LENGTH_2] << 8) & 0xff00) | (command_buffer[POS_LENGTH_1] & 0x00ff);
 		packet_check_list = Payload_Header;
 		break;
 	case Payload_Header:
