@@ -159,7 +159,7 @@ void D1_Node::requestPacketData()
     ros::Duration(3.0).sleep();
     // sleep for 3s, by requsting the info data.
 
-    ROS_INFO("%s", serial_port->requestRunMode(static_cast<eRunMode>(run_mode)).c_str());
+    ROS_INFO("%s", serial_port->requestRunMode(static_cast<eRunMode>(run_mode)));
 
     serial_port->requestDurationControl(static_cast<eRunMode>(run_mode), duration_mode, duration_value);
     ros::Duration(1.0).sleep();
