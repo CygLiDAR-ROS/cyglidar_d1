@@ -2,136 +2,145 @@
 
 using namespace Constant_D1::Command;
 
-cyglidar_serial::cyglidar_serial(const std::string& port_, uint32_t baud_rate_, boost::asio::io_service& io_)
-    :port(port_), baud_rate(baud_rate_), serial(io_, port_)
+cyglidar_serial::cyglidar_serial(const std::string& _port, uint32_t _baudrate,
+                                 boost::asio::io_service &_io_service) : serial(_io_service)
 {
-    serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate_));
+    serial.open(_port);
+
+    boost::asio::serial_port_base::baud_rate boost_baudrate(_baudrate);
+    serial.set_option(boost_baudrate);
 }
 
-uint16_t cyglidar_serial::getPacketLength(uint8_t* output_buffer_, const int buffer_size_)
+uint16_t cyglidar_serial::getPacketLength(uint8_t* _received_buffer, const uint16_t _buffer_size)
 {
-    boost::system::error_code error_code;
+    number_of_packet = boost::asio::read(serial,
+                                         boost::asio::buffer(_received_buffer, _buffer_size),
+                                         boost::asio::transfer_at_least(1), error_code);
 
-    using namespace boost::asio;
-    int number_of_received_data = read(serial, buffer(output_buffer_, buffer_size_), transfer_at_least(1), error_code);
+	if (error_code)
+    {
+        return 0;
+    }
 
-	if (error_code) return 0;
-
-    return number_of_received_data;
+    return number_of_packet;
 }
 
-std::string cyglidar_serial::requestRunMode(const eRunMode run_mode_)
+char* cyglidar_serial::requestRunMode(const eRunMode _run_mode)
 {
-    const char *notice;
+    payload_buffer.clear();
 
-    switch (run_mode_)
+    switch (_run_mode)
     {
         case eRunMode::Mode2D:
-            payload_buffer[0] = Payload::Run::PayloadHeader::Run2D;
+            payload_buffer.push_back(Payload::Run::PayloadHeader::Run2D);
             notice = "[PACKET REQUEST] RUN 2D MODE";
             break;
         case eRunMode::Mode3D:
-            payload_buffer[0] = Payload::Run::PayloadHeader::Run3D;
+            payload_buffer.push_back(Payload::Run::PayloadHeader::Run3D);
             notice = "[PACKET REQUEST] RUN 3D MODE";
             break;
         case eRunMode::ModeDual:
-            payload_buffer[0] = Payload::Run::PayloadHeader::RunDual;
+            payload_buffer.push_back(Payload::Run::PayloadHeader::RunDual);
             notice = "[PACKET REQUEST] RUN DUAL MODE";
             break;
     }
-    payload_buffer[1] = 0x00;
-    makeCommand(command_buffer, payload_buffer, Payload::Run::PayloadTotalSize);
+    payload_buffer.push_back(Payload::Run::PayloadData::data);
 
-    uint16_t runmode_command_totalsize = (Payload::Run::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
-
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, runmode_command_totalsize));
+    sendCommand(payload_buffer);
 
     return notice;
 }
 
-void cyglidar_serial::requestDurationControl(const eRunMode run_mode_, const int duration_mode_, const uint16_t duration_value_)
+void cyglidar_serial::requestDurationControl(const eRunMode _run_mode, uint8_t _duration_mode, uint16_t _duration_value)
 {
-    if(run_mode_ == eRunMode::Mode2D || duration_value_ > Payload::Duration::MaximumDurationValue)
+    payload_buffer.clear();
+
+    if(_run_mode == eRunMode::Mode2D || _duration_value > Payload::Duration::MaximumDurationValue)
+    {
         return;
-    uint8_t MSB = (duration_value_ & 0xFF00) >> 8;
-    uint8_t LSB = duration_value_ & 0x00FF;
+    }
 
-    if(run_mode_ == eRunMode::ModeDual) MSB |= (1 << 7); // 1st bit, set Dual(1)  or 3D
-    if(duration_mode_ == PULSE_MANUAL)  MSB |= (1 << 6); // 2nd bit, set Fixed(1) or Auto
+    uint8_t MSB = (_duration_value & 0xFF00) >> 8;
+    uint8_t LSB = _duration_value & 0x00FF;
 
-    payload_buffer[0] = Payload::Duration::PayloadHeader::Duration;
-    payload_buffer[1] = LSB;
-    payload_buffer[2] = MSB;
-    makeCommand(command_buffer, payload_buffer, Payload::Duration::PayloadTotalSize);
+    if(_run_mode == eRunMode::ModeDual)
+    {
+        MSB |= (1 << 7); // 1st bit, set Dual(1)  or 3D
+    }
 
-    uint16_t duration_command_totalsize = (Payload::Duration::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
+    if(_duration_mode == PULSE_MANUAL)
+    {
+        MSB |= (1 << 6); // 2nd bit, set Fixed(1) or Auto
+    }
 
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, duration_command_totalsize));
+    payload_buffer.push_back(Payload::Duration::PayloadHeader::Duration);
+    payload_buffer.push_back(LSB);
+    payload_buffer.push_back(MSB);
+
+    sendCommand(payload_buffer);
 }
 
-void cyglidar_serial::requestFrequencyChannel(const uint8_t channel_number_)
+void cyglidar_serial::requestFrequencyChannel(const uint8_t _channel_number)
 {
-    payload_buffer[0] = Payload::Frequency::PayloadHeader::SetFreqeuncy;
-    payload_buffer[1] = channel_number_;
-    makeCommand(command_buffer, payload_buffer, Payload::Frequency::PayloadTotalSize);
+    payload_buffer.clear();
+    payload_buffer.push_back(Payload::Frequency::PayloadHeader::SetFreqeuncy);
+    payload_buffer.push_back(_channel_number);
 
-    uint16_t frequency_command_totalsize = (Payload::Frequency::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
-
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, frequency_command_totalsize));
+    sendCommand(payload_buffer);
 }
 
 void cyglidar_serial::requestDeviceInfo()
 {
-    payload_buffer[0] = Payload::DeviceInfo::PayloadHeader::Version;
-    payload_buffer[1] = 0x00;
-    makeCommand(command_buffer, payload_buffer, Payload::DeviceInfo::PayloadTotalSize);
+    payload_buffer.clear();
+    payload_buffer.push_back(Payload::DeviceInfo::PayloadHeader::Version);
+    payload_buffer.push_back(Payload::DeviceInfo::PayloadData::data);
 
-    uint16_t device_info_command_totalsize = (Payload::DeviceInfo::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
-
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, device_info_command_totalsize));
+    sendCommand(payload_buffer);
 }
 
 void cyglidar_serial::requestSerialBaudRate(const uint8_t _select_baud_rate)
 {
-    payload_buffer[0] = Payload::Baudrate::PayloadHeader::SetSerialbaudrate;
-    payload_buffer[1] = _select_baud_rate;
+    payload_buffer.clear();
+    payload_buffer.push_back(Payload::Baudrate::PayloadHeader::SetSerialbaudrate);
+    payload_buffer.push_back(_select_baud_rate);
 
-    makeCommand(command_buffer, payload_buffer, Payload::Baudrate::PayloadTotalSize);
-    uint16_t set_baud_rate_command_totalsize = (Payload::Baudrate::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
-
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, set_baud_rate_command_totalsize));
+    sendCommand(payload_buffer);
 }
 
 void cyglidar_serial::close()
 {
-    payload_buffer[0] = Payload::Stop::PayloadHeader::Stop;
-    payload_buffer[1] = 0x00;
-    makeCommand(command_buffer, payload_buffer, Payload::Stop::PayloadTotalSize);
+    payload_buffer.clear();
+    payload_buffer.push_back(Payload::Stop::PayloadHeader::Stop);
+    payload_buffer.push_back(Payload::Stop::PayloadData::data);
 
-    uint16_t close_command_totalsize = (Payload::Stop::PayloadTotalSize) + (Header::HeaderTotalSize) + 1;
-
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, close_command_totalsize));
+    sendCommand(payload_buffer);
 }
 
 // make the intended request packet to command buffer
-void cyglidar_serial::makeCommand(uint8_t* command_buffer_, uint8_t* payload_, const uint16_t payload_size_)
+void cyglidar_serial::sendCommand(const std::vector<uint8_t> &payload)
 {
-    int buffidx = 0;
-    uint8_t checksum = 0;
-    command_buffer_[buffidx++] = Header::Header1;
-    command_buffer_[buffidx++] = Header::Header2;
-    command_buffer_[buffidx++] = Header::Header3;
+    uint8_t check_sum = 0;
 
-    command_buffer_[buffidx] = (payload_size_ & 0x00FF);
-    checksum ^= command_buffer_[buffidx++];
+    command_buffer.clear();
+    command_buffer.push_back(Header::Header1);
+    command_buffer.push_back(Header::Header2);
+    command_buffer.push_back(Header::Header3);
 
-    command_buffer_[buffidx] = (payload_size_ & 0xFF00) >> 8;
-    checksum ^= command_buffer_[buffidx++];
+    command_buffer.push_back(payload.size());
+    check_sum ^= payload.size();
 
-    for(uint16_t i = 0; i < payload_size_; i++)
+    command_buffer.push_back(0x00);
+    check_sum ^= 0x00;
+
+    for(uint8_t i = 0; i < payload.size(); i++)
     {
-        command_buffer_[buffidx] = payload_[i];
-        checksum ^= command_buffer_[buffidx++];
+        uint8_t buffer_index = PAYLOAD_HEADER + i;
+
+        command_buffer.push_back(payload[i]);
+        check_sum ^= command_buffer[buffer_index];
     }
-    command_buffer_[buffidx] = checksum;
+
+    command_buffer.push_back(check_sum);
+
+    boost::asio::write(serial, boost::asio::buffer(command_buffer, command_buffer.size()));
 }
