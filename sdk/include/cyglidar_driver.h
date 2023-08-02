@@ -14,12 +14,12 @@ namespace cyg_driver
     {
         public:
             uint8_t MSB, LSB;
-            uint16_t raw_distance;
-            void getDistanceArray2D(uint8_t *payload_data_buffer_2d_, uint16_t *distance_2d_);
+            uint16_t raw_data;
+            void getDistanceArray2D(uint8_t* _payload_buffer_2d, uint16_t* _distance_2d);
 
             uint8_t FIRST, SECOND, THIRD;
             uint16_t data1, data2;
-            void getDistanceArray3D(uint8_t *payload_data_buffer_3d_, uint16_t *distance_3d_);
+            void getDistanceArray3D(uint8_t *_payload_buffer_3d, uint16_t* _distance_3d);
 
         private:
     };
