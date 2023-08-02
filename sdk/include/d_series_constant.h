@@ -84,7 +84,6 @@ namespace Constant_D1
 	{
 		namespace Header
 		{
-			const uint8_t HeaderTotalSize = 5; // {header1, header2, header3, payloadlength1, payloadlengt2}
 			const uint8_t Header1 = 0x5A;
 			const uint8_t Header2 = 0x77;
 			const uint8_t Header3 = 0xFF;
@@ -94,8 +93,6 @@ namespace Constant_D1
 		{
 			namespace DeviceInfo
 			{
-				const uint32_t PayloadTotalSize = 2;
-
 				namespace PayloadHeader
 				{
 					const uint8_t Version = 0x10;
@@ -108,8 +105,6 @@ namespace Constant_D1
 
 			namespace Run
 			{
-				const uint32_t PayloadTotalSize = 2;
-
 				namespace PayloadHeader
 				{
 					const uint8_t Run2D   = 0x01;
@@ -124,7 +119,6 @@ namespace Constant_D1
 
 			namespace Duration
 			{
-				const uint32_t PayloadTotalSize = 3;
 				const uint16_t MaximumDurationValue = 10000;	// unit : us
 
 				namespace PayloadHeader
@@ -139,8 +133,6 @@ namespace Constant_D1
 
 			namespace Frequency
 			{
-				const uint32_t PayloadTotalSize = 2;
-
 				namespace PayloadHeader
 				{
 					const uint8_t SetFreqeuncy = 0x0F;
@@ -153,8 +145,6 @@ namespace Constant_D1
 
 			namespace Baudrate
 			{
-				const uint32_t PayloadTotalSize = 2;
-
 				namespace PayloadHeader
 				{
 					const uint8_t SetSerialbaudrate = 0x12;
@@ -167,8 +157,6 @@ namespace Constant_D1
 
 			namespace Stop
 			{
-				const uint32_t PayloadTotalSize = 2;
-
 				namespace PayloadHeader
 				{
 					const uint8_t Stop = 0x02;
