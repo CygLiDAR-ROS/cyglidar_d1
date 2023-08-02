@@ -3,38 +3,38 @@
 namespace cyg_driver
 {
     // Convert 2D, 3D rawdata to measured distance appending both separated data (LSB and MSB)
-    void TransformPayload::getDistanceArray2D(uint8_t *payload_data_buffer_2d_, uint16_t *distance_2d_)
+    void TransformPayload::getDistanceArray2D(uint8_t* _payload_buffer_2d, uint16_t* _distance_2d)
     {
-        uint8_t distance_count_2d = 0;
+        uint8_t buffer_count_2d = 0;
 
-        for (int data_length = 0; data_length < PACKET_LENGTH_2D - 1; data_length += 2)
+        for (uint16_t data_length = 0; data_length < PACKET_LENGTH_2D - 1; data_length += 2)
         {
-            MSB = payload_data_buffer_2d_[data_length];
-            LSB = payload_data_buffer_2d_[data_length + 1];
+            MSB = _payload_buffer_2d[data_length];
+            LSB = _payload_buffer_2d[data_length + 1];
 
-            raw_distance = (uint16_t)((MSB << 8) | LSB);
+            raw_data = (uint16_t)((MSB << 8) | LSB);
 
-            distance_2d_[distance_count_2d++] = raw_distance;
+            _distance_2d[buffer_count_2d++] = raw_data;
         }
     }
 
-    void TransformPayload::getDistanceArray3D(uint8_t *payload_data_buffer_3d_, uint16_t *distance_3d_)
+    void TransformPayload::getDistanceArray3D(uint8_t *_payload_buffer_3d, uint16_t* _distance_3d)
     {
-        uint16_t distance_count_3d = 0;
+        uint16_t buffer_count_3d = 0;
 
-        for (int data_length = 0; data_length < PACKET_LENGTH_3D - 1; data_length += 3)
+        for (uint16_t data_length = 0; data_length < PACKET_LENGTH_3D - 1; data_length += 3)
         {
-            FIRST = payload_data_buffer_3d_[data_length];
-            SECOND = payload_data_buffer_3d_[data_length + 1];
-            THIRD = payload_data_buffer_3d_[data_length + 2];
+            FIRST = _payload_buffer_3d[data_length];
+            SECOND = _payload_buffer_3d[data_length + 1];
+            THIRD = _payload_buffer_3d[data_length + 2];
 
             // data1 is a combination of the first and left half of second
             // data2 is of the right half of second and third
             data1 = (FIRST << 4) | (SECOND >> 4);
             data2 = ((SECOND & 0xf) << 8) | THIRD;
 
-            distance_3d_[distance_count_3d++] = data1;
-            distance_3d_[distance_count_3d++] = data2;
+            _distance_3d[buffer_count_3d++] = data1;
+            _distance_3d[buffer_count_3d++] = data2;
         }
     }
 }
