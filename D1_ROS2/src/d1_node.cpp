@@ -167,7 +167,7 @@ void D1_Node::requestPacketData()
     std::this_thread::sleep_for(3s);
     // sleep for 3s, by requsting the info data.
 
-    RCLCPP_INFO(node->get_logger(), "%s", serial_port->requestRunMode(static_cast<eRunMode>(run_mode)).c_str());
+    RCLCPP_INFO(node->get_logger(), "%s", serial_port->requestRunMode(static_cast<eRunMode>(run_mode)));
 
     serial_port->requestDurationControl(static_cast<eRunMode>(run_mode), duration_mode, duration_value);
     std::this_thread::sleep_for(1s);
