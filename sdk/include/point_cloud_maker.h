@@ -18,24 +18,25 @@ enum eCalculationStatus
 class PointCloudMaker
 {
 	public:
-		PointCloudMaker(float *point_x_, float *point_y_, float *point_z_, const int32_t table_total_size);
+		PointCloudMaker(float* _point_x, float* _point_y, float *_point_z, const int32_t _table_total_size);
 
-		void initLensTransform(const float sensor_point_size_mm_, const uint32_t camera_width_, const uint32_t camera_height_,
-							   const float centerpoint_offset_x_, const float center_point_offset_y_);
+		void initLensTransform(const float _sensor_point_size_mm, const uint32_t _camera_width, const uint32_t _camera_height,
+							   const float _center_point_offset_x, const float _center_point_offset_y);
 
-		eCalculationStatus calcPointCloud(const uint16_t raw_distance_, const int32_t buffer_index_,
-										  float &point_position_x_, float &point_position_y_, float &point_position_z_);
+		eCalculationStatus calcPointCloud(const uint16_t _raw_distance, const int32_t _buffer_index,
+										  float &_point_position_x, float &_point_position_y, float &_point_position_z);
 
 		void initColorMap();
+
 		std::vector<uint32_t> color_map;
 
 	private:
 		float interpolate(const float x_in, const float x0, const float y0, const float x1, const float y1);
-		float getAngle(const float x_, const float y_, const float sensor_point_size_mm_);
+		float getAngle(const float _x, const float _y, const float _sensor_point_size_mm);
 
-		float *table_x;
-		float *table_y;
-		float *table_z;
+		float* table_x;
+		float* table_y;
+		float* table_z;
 		int32_t table_total_size;
 
 		int x, y, r, c;
