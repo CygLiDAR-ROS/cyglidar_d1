@@ -2,10 +2,8 @@
 #define __SERIAL_H
 
 #include <boost/asio.hpp>
-#include <cmath>
-#include <thread>
-#include <iostream>
 #include <string>
+#include <vector>
 
 #include "cygparser.h"
 #include "d_series_constant.h"
@@ -30,7 +28,7 @@ class cyglidar_serial
             * @param baud_rate_ The baud rate to open the serial port at
             * @param io_ Boost ASIO IO Service to use when creating the serial port object
             */
-        cyglidar_serial(const std::string& port_, uint32_t baud_rate_, boost::asio::io_service& io_);
+        cyglidar_serial(const std::string &_port, uint32_t _baudrate, boost::asio::io_service &_io_service);
 
         /**
             * @brief Default destructor
@@ -43,22 +41,22 @@ class cyglidar_serial
         /**
             * @brief Poll the laser to get a new scan. Block until a complete new scan is received or close is called.
             */
-        uint16_t getPacketLength(uint8_t* output_buffer_, const int buffer_size_);
+        uint16_t getPacketLength(uint8_t* _received_buffer, const uint16_t _buffer_size);
 
         /**
             * @brief Send a packet to run CygLiDAR
             */
-        std::string requestRunMode(const eRunMode run_mode_);
+        char* requestRunMode(const eRunMode _run_mode);
 
         /**
             * @brief Send a packet to change a width of the pulse
             */
-        void requestDurationControl(const eRunMode run_mode_, const int duration_mode_, const uint16_t duration_value_);
+        void requestDurationControl(const eRunMode _run_mode, uint8_t _duration_mode, uint16_t _duration_value);
 
         /**
             * @brief Send a packet to assign a frequency level
             */
-        void requestFrequencyChannel(const uint8_t channel_number_);
+        void requestFrequencyChannel(const uint8_t _channel_number);
 
         /**
             * @brief Send a packet to get a device information
@@ -76,11 +74,18 @@ class cyglidar_serial
         void close();
 
     private:
-        std::string port;                ///< @brief The serial port which the driver belongs to
-        uint32_t baud_rate;              ///< @brief The baud rate for the serial connection
+        void sendCommand(const std::vector<uint8_t> &payload);
+
         boost::asio::serial_port serial; ///< @brief Actual serial port object for reading/writing to the lidar Scanner
-        uint8_t command_buffer[20];
-        uint8_t payload_buffer[10];
-        void makeCommand(uint8_t* command_buffer_, uint8_t* payload_, const uint16_t payload_size_);
+        boost::system::error_code error_code;
+
+        uint8_t payload_length_LSB;
+        uint8_t payload_length_MSB;
+        uint16_t number_of_packet;
+
+        std::vector<uint8_t> command_buffer;
+        std::vector<uint8_t> payload_buffer;
+
+        char *notice;
 };
 #endif
