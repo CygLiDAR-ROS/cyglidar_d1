@@ -47,8 +47,6 @@ const uint8_t MODE_2D   = 0;
 const uint8_t MODE_3D   = 1;
 const uint8_t MODE_DUAL = 2;
 
-const uint8_t PAYLOAD_HEADER = 5;
-const uint8_t PAYLOAD_DATA   = 6;
 const uint8_t PACKET_HEADER_2D = 0x01;
 const uint8_t PACKET_HEADER_3D = 0x08;
 const uint8_t PACKET_HEADER_DEV_INFO = 0x10;
