@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 #include <string>
+#include <iostream>
 #include <vector>
 
 #include "cygparser.h"
@@ -33,10 +34,7 @@ class cyglidar_serial
         /**
             * @brief Default destructor
             */
-        ~cyglidar_serial()
-        {
-            serial.close();
-        }
+        ~cyglidar_serial();
 
         /**
             * @brief Poll the laser to get a new scan. Block until a complete new scan is received or close is called.
@@ -46,7 +44,7 @@ class cyglidar_serial
         /**
             * @brief Send a packet to run CygLiDAR
             */
-        char* requestRunMode(const eRunMode _run_mode);
+        void requestRunMode(const eRunMode _run_mode, std::string &_notice);
 
         /**
             * @brief Send a packet to change a width of the pulse
@@ -85,7 +83,5 @@ class cyglidar_serial
 
         std::vector<uint8_t> command_buffer;
         std::vector<uint8_t> payload_buffer;
-
-        char *notice;
 };
 #endif
