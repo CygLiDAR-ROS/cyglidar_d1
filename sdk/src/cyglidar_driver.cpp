@@ -18,7 +18,7 @@ namespace cyg_driver
         }
     }
 
-    void TransformPayload::getDistanceArray3D(uint8_t *_payload_buffer_3d, uint16_t* _distance_3d)
+    void TransformPayload::getDistanceArray3D(uint8_t* _payload_buffer_3d, uint16_t* _distance_3d)
     {
         uint16_t buffer_count_3d = 0;
 
