@@ -23,7 +23,7 @@ void Topic2D::assignLaserScan(std::string _frame_id)
     message_laserscan->intensities.resize(cyg_driver::DATA_LENGTH_2D);
 }
 
-void Topic2D::publishScanLaser(ros::Time _start_time, uint16_t *_distance_buffer_2d)
+void Topic2D::publishScanLaser(ros::Time _start_time, uint16_t* _distance_buffer_2d)
 {
     message_laserscan->header.stamp = _start_time;
 
@@ -54,7 +54,7 @@ void Topic2D::assignPCL2D(std::string _frame_id)
     pcl_2d->points.resize(cyg_driver::DATA_LENGTH_2D);
 }
 
-void Topic2D::publishPoint2D(uint16_t *_distance_buffer_2d)
+void Topic2D::publishPoint2D(uint16_t* _distance_buffer_2d)
 {
     mappingPointCloud2D(_distance_buffer_2d);
 
@@ -63,7 +63,7 @@ void Topic2D::publishPoint2D(uint16_t *_distance_buffer_2d)
     publisher_point_2d.publish(*pcl_2d);
 }
 
-void Topic2D::mappingPointCloud2D(uint16_t *_distance_buffer_2d)
+void Topic2D::mappingPointCloud2D(uint16_t* _distance_buffer_2d)
 {
     float point_2d_angle = 0;
     float point_2d_angle_variable = 0;
