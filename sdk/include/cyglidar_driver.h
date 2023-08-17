@@ -19,7 +19,7 @@ namespace cyg_driver
 
             uint8_t FIRST, SECOND, THIRD;
             uint16_t data1, data2;
-            void getDistanceArray3D(uint8_t *_payload_buffer_3d, uint16_t* _distance_3d);
+            void getDistanceArray3D(uint8_t* _payload_buffer_3d, uint16_t* _distance_3d);
 
         private:
     };
