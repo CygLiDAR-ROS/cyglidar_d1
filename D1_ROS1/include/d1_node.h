@@ -1,16 +1,15 @@
 #ifndef __D1_NODE_H
 #define __D1_NODE_H
 
-#include "serial.h"
-#include "point_cloud_maker.h"
-#include "d_series_constant.h"
-#include "cyglidar_driver.h"
-#include "topic_2d.h"
-#include "topic_3d.h"
-
 #include <ros/ros.h>
 #include <thread>
 #include <future>
+
+#include "cyglidar_serial.h"
+#include "cyglidar_driver.h"
+#include "d_series_constant.h"
+#include "topic_2d.h"
+#include "topic_3d.h"
 
 class D1_Node
 {
@@ -30,14 +29,16 @@ class D1_Node
 
         void initConfiguration();
         void requestPacketData();
+        void convertData(received_data_buffer* _received_buffer);
         void processDoubleBuffer();
-        void convertData(received_data_buffer *_received_buffer);
-        void publishThread();
         void runPublish();
+        void publishThread();
+        void doublebufferThread();
 
-        cyglidar_serial *serial_port;
-        Topic2D *topic_2d;
-        Topic3D *topic_3d;
+        Topic2D* topic_2d;
+        Topic3D* topic_3d;
+        cyglidar_serial* serial_port;
+        cyg_driver::TransformPayload TransformPayload;
 
         std::string port;
         int baud_rate;
@@ -50,12 +51,18 @@ class D1_Node
         ros::NodeHandle nh;
         ros::Time scan_start_time;
 
-        boost::asio::io_service io;
+        boost::asio::io_service io_service;
 
+        std::thread double_buffer_thread;
         std::thread publish_thread;
+
         std::shared_future<void> future;
         std::promise<void> exit_signal;
+        std::future_status status;
 
+        std::string mode_notice;
+
+        uint8_t info_flag = 0;
         uint8_t publish_done_flag  = 0;
         uint8_t publish_data_state = 0;
         uint8_t double_buffer_index;
