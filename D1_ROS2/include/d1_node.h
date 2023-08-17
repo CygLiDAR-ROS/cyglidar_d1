@@ -29,7 +29,7 @@ class D1_Node
 
         void initConfiguration();
         void requestPacketData();
-        void convertData(received_data_buffer *_received_buffer);
+        void convertData(received_data_buffer* _received_buffer);
         void processDoubleBuffer();
         void runPublish();
         void doublebufferThread();
