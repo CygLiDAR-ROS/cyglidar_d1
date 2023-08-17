@@ -15,7 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 FILE(GLOB CYGLIDAR_D_SRC
-    ./src/serial.cpp
+    ./src/cyglidar_serial.cpp
     ./src/cyglidar_driver.cpp
     ./src/cygparser.c
 )
