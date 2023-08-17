@@ -103,7 +103,7 @@ void D1_Node::connectBoostSerial()
     try
     {
         // Open the port
-        serial_port = new cyglidar_serial(port, baud_rate, io);
+        serial_port = new cyglidar_serial(port, baud_rate, io_service);
 
         requestPacketData();
     }
