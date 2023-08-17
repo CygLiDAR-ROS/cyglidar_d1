@@ -20,12 +20,14 @@ D1_Node::D1_Node(rclcpp::Node::SharedPtr _node) : node(_node)
     initConfiguration();
 
     future = exit_signal.get_future();
+    double_buffer_thread = std::thread(&D1_Node::doublebufferThread, this);
     publish_thread = std::thread(&D1_Node::publishThread, this);
 }
 
 D1_Node::~D1_Node()
 {
     exit_signal.set_value();
+    double_buffer_thread.join();
     publish_thread.join();
     delete topic_2d;
     delete topic_3d;
@@ -34,8 +36,6 @@ D1_Node::~D1_Node()
 
 void D1_Node::publishThread()
 {
-    std::future_status status;
-
     do
     {
         runPublish();
@@ -57,6 +57,15 @@ void D1_Node::runPublish()
         topic_2d->publishScanLaser(scan_start_time, distance_buffer_2d);
         topic_2d->publishPoint2D(distance_buffer_2d);
     }
+}
+
+void D1_Node::doublebufferThread()
+{
+    do
+    {
+        processDoubleBuffer();
+        status = future.wait_for(std::chrono::seconds(0));
+    } while (status == std::future_status::timeout);
 }
 
 void D1_Node::processDoubleBuffer()
@@ -102,13 +111,13 @@ void D1_Node::connectBoostSerial()
     try
     {
         // Open the port
-        serial_port = new cyglidar_serial(port, baud_rate, io);
+        serial_port = new cyglidar_serial(port, baud_rate, io_service);
 
         requestPacketData();
     }
     catch (const boost::system::system_error& ex)
     {
-        RCLCPP_ERROR(node->get_logger(), "[BOOST SERIAL ERROR] : %s", ex.what());
+        RCLCPP_ERROR(node->get_logger(), "[BOOST SERIAL ERROR] %s", ex.what());
     }
 }
 
@@ -133,15 +142,18 @@ void D1_Node::loopCygParser()
             double_buffer_index++;
             double_buffer_index &= 1;
 
-            processDoubleBuffer();
+            if (received_buffer->packet_data[PAYLOAD_HEADER] == PACKET_HEADER_DEV_INFO && info_flag == false)
+            {
+                RCLCPP_INFO(node->get_logger(), "[F/W VERSION] %d.%d.%d", received_buffer->packet_data[6], received_buffer->packet_data[7], received_buffer->packet_data[8]);
+                RCLCPP_INFO(node->get_logger(), "[H/W VERSION] %d.%d.%d", received_buffer->packet_data[9], received_buffer->packet_data[10], received_buffer->packet_data[11]);
+                info_flag = true;
+            }
         }
     }
 }
 
-void D1_Node::convertData(received_data_buffer *_received_buffer)
+void D1_Node::convertData(received_data_buffer* _received_buffer)
 {
-    cyg_driver::TransformPayload TransformPayload;
-
     if (_received_buffer->packet_data[PAYLOAD_HEADER] == PACKET_HEADER_2D)
     {
         scan_start_time = node->now() - rclcpp::Duration(0, 48*1000*1000);
@@ -153,12 +165,7 @@ void D1_Node::convertData(received_data_buffer *_received_buffer)
     {
         TransformPayload.getDistanceArray3D(&_received_buffer->packet_data[PAYLOAD_DATA], distance_buffer_3d);
         publish_data_state = PUBLISH_3D;
-    }
-    else if (_received_buffer->packet_data[PAYLOAD_HEADER] == PACKET_HEADER_DEV_INFO)
-    {
-        RCLCPP_INFO(node->get_logger(), "[F/W VERSION] %d.%d.%d", _received_buffer->packet_data[6], _received_buffer->packet_data[7], _received_buffer->packet_data[8]);
-        RCLCPP_INFO(node->get_logger(), "[H/W VERSION] %d.%d.%d", _received_buffer->packet_data[9], _received_buffer->packet_data[10], _received_buffer->packet_data[11]);
-    }
+    }    
 }
 
 void D1_Node::requestPacketData()
@@ -167,7 +174,8 @@ void D1_Node::requestPacketData()
     std::this_thread::sleep_for(3s);
     // sleep for 3s, by requsting the info data.
 
-    RCLCPP_INFO(node->get_logger(), "%s", serial_port->requestRunMode(static_cast<eRunMode>(run_mode)));
+    serial_port->requestRunMode(static_cast<eRunMode>(run_mode), mode_notice);
+    RCLCPP_INFO(node->get_logger(), "[PACKET REQUEST] %s", mode_notice.c_str());
 
     serial_port->requestDurationControl(static_cast<eRunMode>(run_mode), duration_mode, duration_value);
     std::this_thread::sleep_for(1s);
