@@ -18,7 +18,7 @@ enum eCalculationStatus
 class PointCloudMaker
 {
 	public:
-		PointCloudMaker(float* _point_x, float* _point_y, float *_point_z, const int32_t _table_total_size);
+		PointCloudMaker(float* _point_x, float* _point_y, float* _point_z, const int32_t _table_total_size);
 
 		void initLensTransform(const float _sensor_point_size_mm, const uint32_t _camera_width, const uint32_t _camera_height,
 							   const float _center_point_offset_x, const float _center_point_offset_y);
