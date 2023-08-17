@@ -1,6 +1,6 @@
 #include "point_cloud_maker.h"
 
-PointCloudMaker::PointCloudMaker(float* _point_x, float* _point_y, float *_point_z, const int32_t _table_total_size)
+PointCloudMaker::PointCloudMaker(float* _point_x, float* _point_y, float* _point_z, const int32_t _table_total_size)
 {
 	this->table_total_size = _table_total_size;
 	this->table_x = _point_x;
