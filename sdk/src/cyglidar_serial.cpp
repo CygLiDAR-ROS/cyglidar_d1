@@ -1,14 +1,28 @@
-#include "serial.h"
+#include "cyglidar_serial.h"
 
 using namespace Constant_D1::Command;
 
-cyglidar_serial::cyglidar_serial(const std::string& _port, uint32_t _baudrate,
+cyglidar_serial::cyglidar_serial(const std::string &_port, uint32_t _baudrate,
                                  boost::asio::io_service &_io_service) : serial(_io_service)
 {
-    serial.open(_port);
+    serial.open(_port, error_code);
 
-    boost::asio::serial_port_base::baud_rate boost_baudrate(_baudrate);
-    serial.set_option(boost_baudrate);
+    if (error_code)
+    {
+        std::cout << "[BOOST SERIAL ERROR] TRIED TO CONNECT WITH \"port=" << _port << "\", "
+                  << error_code.message().c_str() << std::endl;
+    }
+    
+    serial.set_option(boost::asio::serial_port_base::baud_rate(_baudrate));
+    serial.set_option(boost::asio::serial_port_base::character_size(8));
+    serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+    serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+    serial.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+}
+
+cyglidar_serial::~cyglidar_serial()
+{
+    serial.close();
 }
 
 uint16_t cyglidar_serial::getPacketLength(uint8_t* _received_buffer, const uint16_t _buffer_size)
@@ -25,7 +39,7 @@ uint16_t cyglidar_serial::getPacketLength(uint8_t* _received_buffer, const uint1
     return number_of_packet;
 }
 
-char* cyglidar_serial::requestRunMode(const eRunMode _run_mode)
+void cyglidar_serial::requestRunMode(const eRunMode _run_mode, std::string &_notice)
 {
     payload_buffer.clear();
 
@@ -33,22 +47,20 @@ char* cyglidar_serial::requestRunMode(const eRunMode _run_mode)
     {
         case eRunMode::Mode2D:
             payload_buffer.push_back(Payload::Run::PayloadHeader::Run2D);
-            notice = "[PACKET REQUEST] RUN 2D MODE";
+            _notice = "RUN 2D MODE";
             break;
         case eRunMode::Mode3D:
             payload_buffer.push_back(Payload::Run::PayloadHeader::Run3D);
-            notice = "[PACKET REQUEST] RUN 3D MODE";
+            _notice = "RUN 3D MODE";
             break;
         case eRunMode::ModeDual:
             payload_buffer.push_back(Payload::Run::PayloadHeader::RunDual);
-            notice = "[PACKET REQUEST] RUN DUAL MODE";
+            _notice = "RUN DUAL MODE";
             break;
     }
     payload_buffer.push_back(Payload::Run::PayloadData::data);
 
     sendCommand(payload_buffer);
-
-    return notice;
 }
 
 void cyglidar_serial::requestDurationControl(const eRunMode _run_mode, uint8_t _duration_mode, uint16_t _duration_value)
