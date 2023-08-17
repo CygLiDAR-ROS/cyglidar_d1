@@ -41,12 +41,12 @@ void Topic3D::publishScanImage(uint16_t *_distance_buffer_3d)
     publisher_image->publish(*message_image);
 }
 
-void Topic3D::assignPCL3D(std::string frame_id_)
+void Topic3D::assignPCL3D(std::string _frame_id)
 {
     message_point_cloud_3d = std::make_shared<PointCloud2>();
     pcl_3d.reset(new pcl_XYZRGBA());
 
-    pcl_3d->header.frame_id = frame_id_;
+    pcl_3d->header.frame_id = _frame_id;
     pcl_3d->is_dense = false;
     pcl_3d->width  = Sensor::Width;
     pcl_3d->height = Sensor::Height;
@@ -57,10 +57,10 @@ void Topic3D::assignPCL3D(std::string frame_id_)
     // Call the following function so as to store colors to draw 3D data
     pointcloud_maker->initColorMap();
     pointcloud_maker->initLensTransform(Sensor::PixelRealSize, Sensor::Width, Sensor::Height,
-                                       Parameter::OffsetCenterPoint_x, Parameter::OffsetCenterPoint_y);
+                                        Parameter::OffsetCenterPoint_x, Parameter::OffsetCenterPoint_y);
 }
 
-void Topic3D::mappingPointCloud3D(uint16_t *_distance_buffer_3d)
+void Topic3D::mappingPointCloud3D(uint16_t* _distance_buffer_3d)
 {
     pcl_conversions::toPCL(rclcpp::Clock().now(), pcl_3d->header.stamp);
 
@@ -81,7 +81,7 @@ void Topic3D::mappingPointCloud3D(uint16_t *_distance_buffer_3d)
             pcl_3d->points[buffer_index].y = -camera_coordinate_x * Util::MM_To_M;
             pcl_3d->points[buffer_index].z = -camera_coordinate_y * Util::MM_To_M;
             rgb_setup = pointcloud_maker->color_map[color_level];
-            pcl_3d->points[buffer_index].rgb = *reinterpret_cast<float *>(&rgb_setup);
+            pcl_3d->points[buffer_index].rgb = *reinterpret_cast<float*>(&rgb_setup);
             pcl_3d->points[buffer_index].a = 255;
         }
         else
@@ -94,7 +94,7 @@ void Topic3D::mappingPointCloud3D(uint16_t *_distance_buffer_3d)
     }
 }
 
-void Topic3D::publishPoint3D(uint16_t *_distance_buffer_3d)
+void Topic3D::publishPoint3D(uint16_t* _distance_buffer_3d)
 {
     mappingPointCloud3D(_distance_buffer_3d);
 
