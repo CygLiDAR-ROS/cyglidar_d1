@@ -9,7 +9,6 @@
 
 #include "d_series_constant.h"
 #include "cyglidar_driver.h"
-#include "serial.h"
 
 class Topic2D
 {
@@ -17,11 +16,11 @@ class Topic2D
         void initPublisher(ros::Publisher _publisher_laserscan, ros::Publisher _publisher_point_2d);
 
         void assignLaserScan(std::string _frame_id);
-        void publishScanLaser(ros::Time _start_time, uint16_t *_distance_buffer_2d);
+        void publishScanLaser(ros::Time _start_time, uint16_t* _distance_buffer_2d);
 
         void assignPCL2D(std::string _frame_id);
-        void mappingPointCloud2D(uint16_t *_distance_buffer_2d);
-        void publishPoint2D(uint16_t *_distance_buffer_2d);
+        void mappingPointCloud2D(uint16_t* _distance_buffer_2d);
+        void publishPoint2D(uint16_t* _distance_buffer_2d);
 
     private:
         ros::Publisher publisher_laserscan;
