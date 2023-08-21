@@ -11,6 +11,7 @@ cd ~/cyglidar_ws/src/
 git clone -b ROS1-v0.3.0 https://github.com/CygLiDAR-ROS/cyglidar_d1.git
 cd ..
 catkin_make
+source devel/setup.bash
 ```
 * When CMake Error Occured as below
 > pcl_conversionsConfig.cmake / pcl_conversions-config.cmake
