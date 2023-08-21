@@ -11,6 +11,7 @@ cd ~/cyglidar_ws/src/
 git clone -b ROS2-v0.3.0 https://github.com/CygLiDAR-ROS/cyglidar_d1.git
 cd ..
 colcon build
+source install/setup.bash
 ```
 * When CMake Error Occured as below
 >pcl_conversionsConfig.cmake / pcl_conversions-config.cmake
