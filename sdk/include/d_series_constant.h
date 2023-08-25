@@ -17,10 +17,9 @@ namespace Constant_D1
 		const float PixelRealSize   = 0.02f;			// unit : mm
 		const float HorizontalAngle = 120.0f;			// unit : degree
 		const float AngleIncremet2D = 0.75f;			// unit : degree
-		const int DataSize2D = 161;						// 161 => HorizontalAngle / AngleIncremet2D
-		const int32_t Width  = 160;						// unit : pixel
-		const int32_t Height = 60;						// unit : pixel
-		const int32_t numPixel = Width * Height;		// unit : pixel
+		const uint8_t Width  = 160;						// unit : pixel
+		const uint8_t Height = 60;						// unit : pixel
+		const uint16_t numPixel = Width * Height;		// unit : pixel
 	}
 
 	namespace Parameter
