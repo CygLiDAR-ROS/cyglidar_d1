@@ -26,9 +26,13 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
-find_package(PCL REQUIRED QUIET COMPONENTS core features filters io segmentation surface)
+find_package(PCL REQUIRED)
 
-include_directories(${CYGLIDAR_SDK_PATH}/include ${CYGLIDAR_ROS_PATH}/include)
+include_directories(
+    ${CYGLIDAR_SDK_PATH}/include
+    ${CYGLIDAR_ROS_PATH}/include
+    ${pcl_conversions_INCLUDE_DIRS}
+)
 
 add_library(${PROJECT_NAME} ${CYGLIDAR_SDK_PATH}/src/cygparser.c)
 
