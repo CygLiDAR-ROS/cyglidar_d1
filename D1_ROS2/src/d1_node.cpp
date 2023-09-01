@@ -84,21 +84,13 @@ void D1_Node::processDoubleBuffer()
 
 void D1_Node::initConfiguration()
 {
-    node->declare_parameter("port");
-    node->declare_parameter("baud_rate");
-    node->declare_parameter("frame_id");
-    node->declare_parameter("run_mode");
-    node->declare_parameter("duration_mode");
-    node->declare_parameter("duration_value");
-    node->declare_parameter("frequency_channel");
-
-    node->get_parameter_or<std::string>("port", port, "/dev/ttyUSB0");
-    node->get_parameter_or<int>("baud_rate", baud_rate, 3000000);
-    node->get_parameter_or<std::string>("frame_id", frame_id, "laser_frame");
-    node->get_parameter_or<int>("run_mode", run_mode, 2);
-    node->get_parameter_or<int>("duration_mode", duration_mode, PULSE_AUTO);
-    node->get_parameter_or<int>("duration_value", duration_value, 10000);
-    node->get_parameter_or<int>("frequency_channel", frequency_channel, 0);
+    port              = node->declare_parameter("port", "/dev/ttyUSB0");
+    baud_rate         = node->declare_parameter("baud_rate", 3000000);
+    frame_id          = node->declare_parameter("frame_id", "laser_frame");
+    run_mode          = node->declare_parameter("run_mode", 2);
+    duration_mode     = node->declare_parameter("duration_mode", PULSE_AUTO);
+    duration_value    = node->declare_parameter("duration_value", 10000);
+    frequency_channel = node->declare_parameter("frequency_channel", 0);
 
     topic_2d->assignLaserScan(frame_id);
     topic_2d->assignPCL2D(frame_id);
