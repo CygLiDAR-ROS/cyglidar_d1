@@ -72,6 +72,7 @@ uint8_t CygParser(uint8_t* command_buffer, uint8_t packet_data)
 			command_buffer[LENGTH_MSB] = packet_data;
 			payload_size = ((command_buffer[LENGTH_MSB] << 8) & 0xff00) | (command_buffer[LENGTH_LSB] & 0x00ff);
 			packet_check_list = kPayload_Header;
+            payload_count = 0;
 			break;
 		case kPayload_Header:
 			command_buffer[PAYLOAD_HEADER] = packet_data;
