@@ -103,12 +103,12 @@ void Topic3D::updateColorConfig(uint8_t _color_mode, std::string &_notice)
     }
     else if (_color_mode == MODE_RGB)
     {
-        total_color_number = 511;
+        total_color_number = 510;
         _notice = "RGB MODE";
     }
     else if (_color_mode == MODE_GRAY)
     {
-        total_color_number = 511;
+        total_color_number = 510;
         _notice = "GRAY MODE";
     }
 
