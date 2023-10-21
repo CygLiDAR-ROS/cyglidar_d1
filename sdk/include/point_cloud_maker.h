@@ -1,7 +1,7 @@
 #ifndef __POINT_CLOUD_MAKER_H
 #define __POINT_CLOUD_MAKER_H
 
-#include <cstint>
+#include <cstdint>
 #include <math.h>
 #include <vector>
 #include <limits>
