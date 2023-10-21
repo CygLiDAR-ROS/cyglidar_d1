@@ -1,24 +1,21 @@
 #include "d1_node.h"
 
-D1_Node *D1_node;
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "D1_NODE");
-    ros::NodeHandle nh;
 
-    D1_node = new D1_Node(nh);
-    
+    std::shared_ptr<D1_Node> d1_node = std::make_shared<D1_Node>();
+
     try
     {
-        D1_node->connectBoostSerial();
-        
+        d1_node->connectBoostSerial();
+
         while(ros::ok())
         {
-            D1_node->loopCygParser();
+            d1_node->loopCygParser();
         }
 
-        D1_node->disconnectBoostSerial();
+        d1_node->disconnectBoostSerial();
     }
     catch (const ros::Exception &e)
     {
@@ -26,5 +23,4 @@ int main(int argc, char **argv)
     }
 
     ros::shutdown();
-    delete D1_node;
 }
