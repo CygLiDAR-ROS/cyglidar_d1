@@ -43,6 +43,7 @@ In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D
 * max_resolution → "max_resolution [0 to 3000] "
 
 ### Topic Image Updated
+---
 #### MODE HUE
 <h1 align="left">
   <img src="screenshots/MODE__HUE.png" width="800"/>
@@ -59,6 +60,7 @@ In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D
 </h1>
 The measured distance datas in Rviz can be viewed as an 'Image Topic', There are HUE / RGB / GRAY Mode. 
 You can adjust 'color_mode' value which you want.
+
 In ROS2 Package, You can adjust the min/max value as well. But, comapred with ROS1 package, you can adjust value with Launch Parameters.
 
 ### Run CyglidarNode and View in the Rviz
