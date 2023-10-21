@@ -45,7 +45,7 @@ In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D
 ### Topic Image Updated
 #### MODE HUE
 <h1 align="left">
-  <img src="screenshots/MODE_HUE.png" width="800"/>
+  <img src="screenshots/MODE__HUE.png" width="800"/>
 </h1>
 
 #### MODE RGB
