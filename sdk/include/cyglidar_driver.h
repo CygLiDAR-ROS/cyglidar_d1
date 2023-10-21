@@ -1,6 +1,6 @@
 #ifndef __CYGLIDAR_DRIVER_H_
 #define __CYGLIDAR_DRIVER_H_
-#include <cstint>
+#include <cstdint>
 
 constexpr uint16_t DATA_LENGTH_2D = 161;
 constexpr uint16_t DATA_LENGTH_3D = 9600;
