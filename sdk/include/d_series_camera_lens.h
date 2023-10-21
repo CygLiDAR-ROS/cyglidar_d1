@@ -2,10 +2,10 @@
 #define __D_SERIES_CAMERA_LENS_H
 
 // Distortion Type : F - Tan(Theta)
-constexpr int camera_lens_buffer_size = 101;
+constexpr uint8_t CAMERA_LENS_BUFFER_SIZE = 101;
 
 // lens_angle units are Degree.
-const float lens_angle[camera_lens_buffer_size] =
+const float lens_angle[CAMERA_LENS_BUFFER_SIZE] =
 {
 	 0.000000f,  0.649278f,  1.298556f,  1.947834f,  2.597113f,  3.246391f,  3.895669f,
 	 4.544947f,  5.194225f,  5.843503f,  6.492782f,  7.142060f,  7.791338f,  8.440616f,
@@ -27,7 +27,7 @@ const float lens_angle[camera_lens_buffer_size] =
 };
 
 // real_image_height units are Millimeters.
-const float real_image_height[camera_lens_buffer_size] =
+const float real_image_height[CAMERA_LENS_BUFFER_SIZE] =
 {
 	0.000000f, 0.009109f, 0.018221f, 0.027340f, 0.036469f, 0.045612f, 0.054770f, 0.063949f,
 	0.073151f, 0.082379f, 0.091637f, 0.100928f, 0.110256f, 0.119622f, 0.129032f,
