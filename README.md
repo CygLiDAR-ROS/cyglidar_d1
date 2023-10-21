@@ -31,7 +31,7 @@ chmod +x create_udev_rules.sh
 ```
 
 ### Parameters in 'cyglidar.launch.py' File
-In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D and Dual(2D/3D)
+In cyglidar.launch, you can adjust parameter value
 
 * baud_rate → "baud rate value [0:(3,000,000), 1:(921,600), 2:(115,200), 3:(57,600)]"
 * run_mode → "version type [0:(MODE_2D), 1:(MODE_3D), 2:(MODE_DUAL)]"
