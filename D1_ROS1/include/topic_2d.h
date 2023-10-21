@@ -11,6 +11,7 @@
 #include "cyglidar_driver.h"
 
 using pcl_XYZRGBA = pcl::PointCloud<pcl::PointXYZRGBA>;
+using namespace Constant_D1;
 
 class Topic2D
 {
