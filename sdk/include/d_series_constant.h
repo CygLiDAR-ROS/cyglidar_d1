@@ -70,6 +70,7 @@ namespace Constant_D1
 	{
 		const ColorCode_t ADCOverflow = { 173,216,230 };
 		const ColorCode_t Saturation  = { 128, 0 ,128 };
+		const ColorCode_t None        = {  0,  0,  0  };
 	}
 
 	namespace Util
