@@ -1,45 +1,58 @@
 #include "cyglidar_serial.h"
 
-using namespace Constant_D1::Command;
+CyglidarSerial::CyglidarSerial() {}
 
-cyglidar_serial::cyglidar_serial(const std::string& _port, uint32_t _baudrate,
-                                 boost::asio::io_service &_io_service) : serial(_io_service)
+CyglidarSerial::~CyglidarSerial()
 {
-    serial.open(_port, error_code);
+    if (serial)
+	{
+		serial->cancel();
+		serial->close();
+		serial.reset();
+	}
 
-    if (error_code)
-    {
-        std::cout << "[BOOST SERIAL ERROR] TRIED TO CONNECT WITH \"port=" << _port << "\", "
-                  << error_code.message().c_str() << std::endl;
-    }
-
-    serial.set_option(boost::asio::serial_port_base::baud_rate(_baudrate));
-    serial.set_option(boost::asio::serial_port_base::character_size(8));
-    serial.set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-    serial.set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-    serial.set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+	io_service.stop();
+	io_service.reset();
 }
 
-cyglidar_serial::~cyglidar_serial()
+void CyglidarSerial::openSerial(const std::string &_port, const uint8_t _baudrate)
 {
-    serial.close();
-}
+	if (serial)
+	{
+		std::cout << "[ERRPR] PORT IS ALREADY OPENED..." << std::endl;
+	}
 
-uint16_t cyglidar_serial::getPacketLength(uint8_t* _received_buffer, const uint16_t _buffer_size)
-{
-    number_of_packet = boost::asio::read(serial,
-                                         boost::asio::buffer(_received_buffer, _buffer_size),
-                                         boost::asio::transfer_at_least(1), error_code);
+    serial = std::make_shared<boost::asio::serial_port>(io_service);
+
+	serial->open(_port, error_code);
 
 	if (error_code)
-    {
-        return 0;
-    }
+	{
+		std::cout << "[BOOST SERIAL ERROR] TRIED TO CONNECT WITH \"port=" << _port
+				  << "\", " << error_code.message().c_str() << std::endl;
+	}
+
+    baud_rate = getBaudRate(_baudrate);
+
+	serial->set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+	serial->set_option(boost::asio::serial_port_base::character_size(8));
+	serial->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+	serial->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+	serial->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+}
+
+uint16_t CyglidarSerial::getPacketLength(uint8_t* _received_buffer, const uint16_t _buffer_size)
+{
+    if (serial.get() == NULL || !serial->is_open()) return 0;
+
+    number_of_packet = serial->read_some(boost::asio::buffer(_received_buffer, _buffer_size), error_code);
+
+	if (error_code) return 0;
 
     return number_of_packet;
 }
 
-void cyglidar_serial::requestRunMode(const eRunMode _run_mode, std::string &_notice)
+void CyglidarSerial::requestRunMode(const eRunMode _run_mode, std::string &_notice)
 {
     payload_buffer.clear();
 
@@ -63,7 +76,7 @@ void cyglidar_serial::requestRunMode(const eRunMode _run_mode, std::string &_not
     sendCommand(payload_buffer);
 }
 
-void cyglidar_serial::requestDurationControl(const eRunMode _run_mode, uint8_t _duration_mode, uint16_t _duration_value)
+void CyglidarSerial::requestDurationControl(const eRunMode _run_mode, const uint8_t _duration_mode, const uint16_t _duration_value)
 {
     payload_buffer.clear();
 
@@ -92,7 +105,7 @@ void cyglidar_serial::requestDurationControl(const eRunMode _run_mode, uint8_t _
     sendCommand(payload_buffer);
 }
 
-void cyglidar_serial::requestFrequencyChannel(const uint8_t _channel_number)
+void CyglidarSerial::requestFrequencyChannel(const uint8_t _channel_number)
 {
     payload_buffer.clear();
     payload_buffer.push_back(Payload::Frequency::PayloadHeader::SetFreqeuncy);
@@ -101,7 +114,7 @@ void cyglidar_serial::requestFrequencyChannel(const uint8_t _channel_number)
     sendCommand(payload_buffer);
 }
 
-void cyglidar_serial::requestDeviceInfo()
+void CyglidarSerial::requestDeviceInfo()
 {
     payload_buffer.clear();
     payload_buffer.push_back(Payload::DeviceInfo::PayloadHeader::Version);
@@ -110,7 +123,7 @@ void cyglidar_serial::requestDeviceInfo()
     sendCommand(payload_buffer);
 }
 
-void cyglidar_serial::requestSerialBaudRate(const uint8_t _select_baud_rate)
+void CyglidarSerial::requestSerialBaudRate(const uint8_t _select_baud_rate)
 {
     payload_buffer.clear();
     payload_buffer.push_back(Payload::Baudrate::PayloadHeader::SetSerialbaudrate);
@@ -119,7 +132,30 @@ void cyglidar_serial::requestSerialBaudRate(const uint8_t _select_baud_rate)
     sendCommand(payload_buffer);
 }
 
-void cyglidar_serial::close()
+uint32_t CyglidarSerial::getBaudRate(uint8_t _baud_rate_mode)
+{
+    uint32_t result = 0;
+
+    switch(_baud_rate_mode)
+    {
+        case 0:
+            result = 3000000;
+            break;
+        case 1:
+            result = 921600;
+            break;
+        case 2:
+            result = 115200;
+            break;
+        case 3:
+            result = 57600;
+            break;
+    }
+
+    return result;
+}
+
+void CyglidarSerial::closeSerial()
 {
     payload_buffer.clear();
     payload_buffer.push_back(Payload::Stop::PayloadHeader::Stop);
@@ -129,7 +165,7 @@ void cyglidar_serial::close()
 }
 
 // make the intended request packet to command buffer
-void cyglidar_serial::sendCommand(const std::vector<uint8_t> &payload)
+void CyglidarSerial::sendCommand(const std::vector<uint8_t> &payload)
 {
     uint8_t check_sum = 0;
 
@@ -154,5 +190,5 @@ void cyglidar_serial::sendCommand(const std::vector<uint8_t> &payload)
 
     command_buffer.push_back(check_sum);
 
-    boost::asio::write(serial, boost::asio::buffer(command_buffer, command_buffer.size()));
+    serial->write_some(boost::asio::buffer(command_buffer, command_buffer.size()), error_code);
 }
