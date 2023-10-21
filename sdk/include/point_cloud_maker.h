@@ -1,13 +1,13 @@
 #ifndef __POINT_CLOUD_MAKER_H
 #define __POINT_CLOUD_MAKER_H
 
-#include "d_series_camera_lens.h"
-#include "d_series_constant.h"
-
-#include <stdint.h>
+#include <cstint>
+#include <math.h>
 #include <vector>
 #include <limits>
-#include <math.h>
+
+#include "d_series_camera_lens.h"
+#include "d_series_constant.h"
 
 enum eCalculationStatus
 {
@@ -39,6 +39,7 @@ class PointCloudMaker
 		float* table_z;
 		int32_t table_total_size;
 
+		uint8_t r_setup, g_setup, b_setup;
 		int x, y, r, c;
 		int number_of_columns;
 		int number_of_rows;
