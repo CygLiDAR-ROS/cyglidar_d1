@@ -37,17 +37,15 @@ void interruptSignal(int signal)
 }
 #endif
 
-cyglidar_serial* serial_port;
-cyg_driver::TransformPayload TransformPayload;
+std::shared_ptr<CyglidarSerial> serial_port;
+std::shared_ptr<CygDriver>      cyg_driver;
 
 std::string port;
-uint32_t baud_rate;
-uint8_t duration_mode;
-uint16_t duration_value;
-uint8_t run_mode;
-uint8_t frequency_channel;
-
-boost::asio::io_service io_service;
+uint8_t     baud_rate_mode;
+uint8_t     run_mode;
+uint8_t     duration_mode;
+uint16_t    duration_value;
+uint8_t     frequency_channel;
 
 std::thread publish_thread;
 std::thread double_buffer_thread;
@@ -57,8 +55,8 @@ std::promise<void> exit_signal;
 std::future_status status;
 
 std::string mode_notice;
+bool info_flag = false;
 
-uint8_t info_flag = 0;
 uint8_t publish_done_flag  = 0;
 uint8_t publish_data_state = 0;
 uint8_t double_buffer_index;
@@ -68,8 +66,8 @@ uint8_t packet_structure[SCAN_MAX_SIZE];
 uint8_t parser_return;
 
 uint16_t number_of_data;
-uint16_t distance_buffer_2d[cyg_driver::DATA_LENGTH_2D];
-uint16_t distance_buffer_3d[cyg_driver::DATA_LENGTH_3D];
+uint16_t distance_buffer_2d[DATA_LENGTH_2D];
+uint16_t distance_buffer_3d[DATA_LENGTH_3D];
 
 const uint8_t MODE_2D   = 0;
 const uint8_t MODE_3D   = 1;
@@ -95,7 +93,7 @@ void requestPacketData()
 	// sleep for 3s, by requsting the info data.
 
 	serial_port->requestRunMode(static_cast<eRunMode>(run_mode), mode_notice);
-	printf("%s\n", mode_notice.c_str());
+	printf("[PACKET REQUEST] %s\n", mode_notice.c_str());
 
 	serial_port->requestDurationControl(static_cast<eRunMode>(run_mode), duration_mode, duration_value);
 	std::this_thread::sleep_for(1s);
@@ -109,7 +107,7 @@ void connectBoostSerial()
 {
 	try
 	{
-		serial_port = new cyglidar_serial(port, baud_rate, io_service);
+		serial_port->openSerial(port, baud_rate_mode);
 
 		requestPacketData();
 	}
@@ -121,8 +119,18 @@ void connectBoostSerial()
 
 void disconnectBoostSerial()
 {
-	serial_port->close();
+	serial_port->closeSerial();
 	printf("[PACKET REQUEST] STOP\n");
+}
+
+void convertInfoData(received_data_buffer &_received_buffer)
+{
+	if (_received_buffer.packet_data[PAYLOAD_HEADER] == PACKET_HEADER_DEV_INFO && info_flag == false)
+	{
+		printf("[F/W VERSION] %d.%d.%d\n", received_buffer->packet_data[6], received_buffer->packet_data[7], received_buffer->packet_data[8]);
+		printf("[H/W VERSION] %d.%d.%d\n", received_buffer->packet_data[9], received_buffer->packet_data[10], received_buffer->packet_data[11]);
+		info_flag = true;
+	}
 }
 
 void loopCygParser()
@@ -140,27 +148,24 @@ void loopCygParser()
 			double_buffer_index++;
 			double_buffer_index &= 1;
 
-			if (received_buffer->packet_data[PAYLOAD_HEADER] == PACKET_HEADER_DEV_INFO && info_flag == false)
-			{
-				printf("[F/W VERSION] %d.%d.%d\n", received_buffer->packet_data[6], received_buffer->packet_data[7], received_buffer->packet_data[8]);
-				printf("[H/W VERSION] %d.%d.%d\n", received_buffer->packet_data[9], received_buffer->packet_data[10], received_buffer->packet_data[11]);
-				info_flag = true;
-			}
+			convertInfoData(received_buffer[0]);
 		}
 	}
 }
 
-void convertData(received_data_buffer *_received_buffer)
+void convertData(received_data_buffer* _received_buffer)
 {
 	if (_received_buffer->packet_data[PAYLOAD_HEADER] == PACKET_HEADER_2D)
 	{
-		TransformPayload.getDistanceArray2D(&_received_buffer->packet_data[PAYLOAD_DATA], distance_buffer_2d);
+		cyg_driver->getDistanceArray2D(&_received_buffer->packet_data[PAYLOAD_DATA], distance_buffer_2d);
 		printf("BUFFER 2D Length : %ld\n", sizeof(distance_buffer_2d) / sizeof(uint16_t));
+		publish_data_state = PUBLISH_2D;
 	}
 	else if (_received_buffer->packet_data[PAYLOAD_HEADER] == PACKET_HEADER_3D)
 	{
-		TransformPayload.getDistanceArray3D(&_received_buffer->packet_data[PAYLOAD_DATA], distance_buffer_3d);
+		cyg_driver->getDistanceArray3D(&_received_buffer->packet_data[PAYLOAD_DATA], distance_buffer_3d);
 		printf("BUFFER 3D Length : %ld\n", sizeof(distance_buffer_3d) / sizeof(uint16_t));
+		publish_data_state = PUBLISH_3D;
 	}
 }
 
@@ -183,7 +188,7 @@ void doublebufferThread()
 	do
 	{
 		processDoubleBuffer();
-		status = future.wait_for(std::chrono::seconds(0));
+		status = future.wait_for(0s);
 	} while (status == std::future_status::timeout);
 }
 
@@ -191,11 +196,11 @@ void runPublish()
 {
 	if (publish_data_state == PUBLISH_3D)
 	{
-		publish_data_state == PUBLISH_DONE;
+		publish_data_state = PUBLISH_DONE;
 	}
 	else if (publish_data_state == PUBLISH_2D)
 	{
-		publish_data_state == PUBLISH_DONE;
+		publish_data_state = PUBLISH_DONE;
 	}
 }
 
@@ -204,25 +209,28 @@ void publishThread()
 	do
 	{
 		runPublish();
-		status = future.wait_for(std::chrono::seconds(0));
+		status = future.wait_for(0s);
 	} while (status == std::future_status::timeout);
 }
 
 int main()
 {
 #ifdef _WIN32
-			port = "COM0";
+			port = "COM3";
 #endif
 #ifdef __linux__
-			port = "/dev/ttyUSB0";
+			port = "/dev/ttyS3";
 			signal(SIGINT, interruptSignal);
 #endif
 
-	baud_rate = 3000000;
-	run_mode = MODE_DUAL;
-	duration_mode = PULSE_AUTO;
-	duration_value = 10000;
+	baud_rate_mode    = 0;
+	run_mode 	      = MODE_DUAL;
+	duration_mode     = PULSE_AUTO;
+	duration_value    = 10000;
 	frequency_channel = 0;
+	
+	serial_port = std::make_shared<CyglidarSerial>();
+	cyg_driver  = std::make_shared<CygDriver>();
 
 	received_buffer[0].packet_data = first_total_packet_data;
 	received_buffer[1].packet_data = second_total_packet_data;
@@ -258,9 +266,9 @@ int main()
 	}
 
 	exit_signal.set_value();
+	
 	publish_thread.join();
 	double_buffer_thread.join();
-	delete serial_port;
 
 	return 0;
 }
