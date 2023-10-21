@@ -10,7 +10,7 @@ mkdir -p ~/cyglidar_ws/src/
 cd ~/cyglidar_ws/src/
 git clone -b ROS1-v0.3.0 https://github.com/CygLiDAR-ROS/cyglidar_d1.git
 cd ..
-catkin_make
+catkin_make -j4
 source devel/setup.bash
 ```
 * When CMake Error Occured as below
