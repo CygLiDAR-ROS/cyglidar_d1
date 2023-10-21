@@ -1,9 +1,9 @@
 #ifndef __D1_NODE_H
 #define __D1_NODE_H
 
-#include <ros/ros.h>
 #include <thread>
 #include <future>
+#include <ros/ros.h>
 
 #include "cyglidar_serial.h"
 #include "cyglidar_driver.h"
@@ -11,10 +11,12 @@
 #include "topic_2d.h"
 #include "topic_3d.h"
 
+using namespace Constant_D1;
+
 class D1_Node
 {
     public:
-        explicit D1_Node(ros::NodeHandle _nh);
+        explicit D1_Node();
         virtual ~D1_Node();
 
         void connectBoostSerial();
@@ -30,18 +32,19 @@ class D1_Node
         void initConfiguration();
         void requestPacketData();
         void convertData(received_data_buffer* _received_buffer);
+        void convertInfoData(received_data_buffer* _received_buffer);
         void processDoubleBuffer();
         void runPublish();
-        void publishThread();
         void doublebufferThread();
+        void publishThread();
 
-        Topic2D* topic_2d;
-        Topic3D* topic_3d;
-        cyglidar_serial* serial_port;
-        cyg_driver::TransformPayload TransformPayload;
+        std::shared_ptr<Topic2D>        topic_2d;
+        std::shared_ptr<Topic3D>        topic_3d;
+        std::shared_ptr<CyglidarSerial> serial_port;
+        std::shared_ptr<CygDriver>      cyg_driver;
 
         std::string port;
-        int baud_rate;
+        int baud_rate_mode;
         std::string frame_id;
         int run_mode;
         int duration_mode;
@@ -51,8 +54,6 @@ class D1_Node
         ros::NodeHandle nh;
         ros::Time scan_start_time;
 
-        boost::asio::io_service io_service;
-
         std::thread double_buffer_thread;
         std::thread publish_thread;
 
@@ -61,8 +62,8 @@ class D1_Node
         std::future_status status;
 
         std::string mode_notice;
+        bool info_flag = false;
 
-        uint8_t info_flag = 0;
         uint8_t publish_done_flag  = 0;
         uint8_t publish_data_state = 0;
         uint8_t double_buffer_index;
@@ -72,8 +73,8 @@ class D1_Node
         uint8_t parser_return;
 
         uint16_t number_of_data;
-        uint16_t distance_buffer_2d[cyg_driver::DATA_LENGTH_2D];
-        uint16_t distance_buffer_3d[cyg_driver::DATA_LENGTH_3D];
+        uint16_t distance_buffer_2d[DATA_LENGTH_2D];
+        uint16_t distance_buffer_3d[DATA_LENGTH_3D];
 
         const uint8_t PUBLISH_DONE = 0;
         const uint8_t PUBLISH_2D   = 1;
