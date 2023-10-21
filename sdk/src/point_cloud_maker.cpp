@@ -25,7 +25,7 @@ void PointCloudMaker::initLensTransform(const float _sensor_point_size_mm, const
 		for (x = 0, c = col0; x < number_of_columns; c++, x++)
 		{
 			column = static_cast<float>(c) - 0.5f;
-			row = static_cast<float>(r) - 0.5f;
+			row    = static_cast<float>(r) - 0.5f;
 
 			angle_grad = getAngle(column, row, _sensor_point_size_mm);
 
@@ -48,11 +48,9 @@ eCalculationStatus PointCloudMaker::calcPointCloud(const uint16_t _raw_distance,
 {
 	if (_buffer_index >= table_total_size) return eCalculationStatus::FAIL;
 
-	float distance2float = static_cast<float>(_raw_distance);
-
-	_point_position_x = distance2float * table_x[_buffer_index];
-	_point_position_y = distance2float * table_y[_buffer_index];
-	_point_position_z = distance2float * table_z[_buffer_index];
+	_point_position_x = static_cast<float>(_raw_distance) * table_x[_buffer_index];
+	_point_position_y = static_cast<float>(_raw_distance) * table_y[_buffer_index];
+	_point_position_z = static_cast<float>(_raw_distance) * table_z[_buffer_index];
 
 	return eCalculationStatus::SUCCESS;
 }
@@ -70,7 +68,7 @@ float PointCloudMaker::getAngle(const float _x, const float _y, const float _sen
 	float radius = _sensor_point_size_mm * sqrtf((_x * _x) + (_y * _y));
 	float alfa_grad = 0;
 
-	for (int i = 1; i < camera_lens_buffer_size; i++)
+	for (uint8_t i = 1; i < CAMERA_LENS_BUFFER_SIZE; i++)
 	{
 		if (radius >= real_image_height[i - 1] && radius <= real_image_height[i])
 		{
@@ -83,14 +81,14 @@ float PointCloudMaker::getAngle(const float _x, const float _y, const float _sen
 
 void PointCloudMaker::initColorMap()
 {
-	uint8_t r_setup = 255;
-	uint8_t g_setup = 0;
-	uint8_t b_setup = 0;
+	r_setup = 0;
+	g_setup = 0;
+	b_setup = 255;
 
     // Iterate for-loop of adding RGB value to an array
-	for (int i = 0; i < 3; i++)
+	for (uint8_t i = 0; i < 2; i++)
 	{
-		for (int color_count = 0; color_count < 256; color_count++)
+		for (uint8_t color_count = 0; color_count < 255; color_count++)
 		{
 			switch (i)
 			{
