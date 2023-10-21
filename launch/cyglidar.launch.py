@@ -48,7 +48,7 @@ def generate_launch_description():
 
     max_resolution_arg = DeclareLaunchArgument(
         "max_resolution_value",
-        default_value = TextSubstitution(text="4000"),
+        default_value = TextSubstitution(text="3000"),
         description = "max_resolution [0 to 3000] "
     )
 
