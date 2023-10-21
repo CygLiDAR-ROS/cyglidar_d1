@@ -1,13 +1,17 @@
 #ifndef __POINT_CLOUD_MAKER_H
 #define __POINT_CLOUD_MAKER_H
 
+#include <cstdint>
+#include <math.h>
+#include <vector>
+#include <limits>
+
 #include "d_series_camera_lens.h"
 #include "d_series_constant.h"
 
-#include <stdint.h>
-#include <vector>
-#include <limits>
-#include <math.h>
+#define MODE_HUE  0
+#define MODE_RGB  1
+#define MODE_GRAY 2
 
 enum eCalculationStatus
 {
@@ -26,9 +30,9 @@ class PointCloudMaker
 		eCalculationStatus calcPointCloud(const uint16_t _raw_distance, const int32_t _buffer_index,
 										  float &_point_position_x, float &_point_position_y, float &_point_position_z);
 
-		void initColorMap();
+		void initColorMap(uint8_t color_mode);
 
-		std::vector<uint32_t> color_map;
+		std::vector<ColorCode_t> color_map;
 
 	private:
 		float interpolate(const float x_in, const float x0, const float y0, const float x1, const float y1);
@@ -39,6 +43,8 @@ class PointCloudMaker
 		float* table_z;
 		int32_t table_total_size;
 
+		uint8_t r_setup, g_setup, b_setup;
+		uint8_t color_array;
 		int x, y, r, c;
 		int number_of_columns;
 		int number_of_rows;
