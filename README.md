@@ -46,17 +46,14 @@ In cyglidar.launch, you can adjust parameter value
 ---
 #### MODE HUE
 <h1 align="left">
-  <img src="screenshots/MODE__HUE.png" width="800"/>
 </h1>
 
 #### MODE RGB
 <h1 align="left">
-  <img src="screenshots/MODE_RGB.png" width="800"/>
 </h1>
 
 #### MODE GRAY
 <h1 align="left">
-  <img src="screenshots/MODE_GRAY.png" width="800"/>
 </h1>
 The measured distance datas in Rviz can be viewed as an 'Image Topic', There are HUE / RGB / GRAY Mode. 
 You can adjust 'color_mode' value which you want.
