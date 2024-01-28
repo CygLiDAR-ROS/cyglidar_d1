@@ -1,4 +1,4 @@
-# cyglidar_d1(ROS2)
+# cyglidar_d1(ROS1)
 cyglidar_d1 is a ROS package, which is designed to visualize 2D/3D distance dataset in real-time.
 For more details in CygLiDAR, please visit http://www.cygbot.com
 
@@ -8,52 +8,54 @@ For more details in CygLiDAR, please visit http://www.cygbot.com
 ```bash
 mkdir -p ~/cyglidar_ws/src/
 cd ~/cyglidar_ws/src/
-git clone -b ROS2-v0.3.0 https://github.com/CygLiDAR-ROS/cyglidar_d1.git
+git clone -b ROS1-v0.3.0 https://github.com/CygLiDAR-ROS/cyglidar_d1.git
 cd ..
-colcon build
-source install/setup.bash
+catkin_make -j4
+source devel/setup.bash
 ```
 * When CMake Error Occured as below
->pcl_conversionsConfig.cmake / pcl_conversions-config.cmake
-
+> pcl_conversionsConfig.cmake / pcl_conversions-config.cmake
+>
+> pcl_rosConfig.cmake / pcl_ros-config.cmake
 ```bash
-sudo apt install ros-{ROS2 Ver Name}-pcl-conversions
+sudo apt install ros-noetic-pcl-conversions
+sudo apt install ros-noetic-pcl-ros
+---or---
+sudo apt install ros-melodic-pcl-conversions
+sudo apt install ros-melodic-pcl-ros
 ```
-
 ### Installation Udev
 Install the udev rule
 ```bash
-cd ~/cyglidar_ws/src/cyglidar_d1/scripts
+roscd cyglidar_d1_ros1
+cd scripts
 chmod +x create_udev_rules.sh
 ./create_udev_rules.sh
 ```
 
-### Parameters in 'cyglidar.launch.py' File
+### Parameters in 'cyglidar.launch' File
 In cyglidar.launch, the run mode number can be switched to 0, 1 and 2 for 2D, 3D and Dual(2D/3D)
 
 And the others can be switched respectively as below:
 <h1 align="left">
-  <img src="screenshots/launch_parameter.png" width="800"/>
+  <img src="screenshots/launch_file_param.png" width="800"/>
 </h1>
+
+### Run CyglidarNode and View in the Rviz
+<h1 align="left">
+  <img src="screenshots/launch_file_display.png" width="800"/>
+</h1>
+
+```bash
+roslaunch cyglidar_d1_ros1 cyglidar.launch
+roslaunch cyglidar_d1_ros1 view_cyglidar.launch  (Run with Rviz)
+```
 
 ### Topic Image Updated
 <h1 align="left">
   <img src="screenshots/image_view.png" width="800"/>
 </h1>
 The measured distance datas in Rviz can be viewed as an 'Image Topic(MONO16)'. You can adjust the min/max value to specify a view based on distance.
-
-### Run CyglidarNode and View in the Rviz
-```bash
-ros2 launch cyglidar_d1_ros2 cyglidar.launch.py
-ros2 launch cyglidar_d1_ros2 view_cyglidar.launch.py  (Run with Rviz)
-```
-
-#1 When CyglidarNode Error Occured
->[Error] : An exception was thrown [open : Permission denied]
-Please check 'Installation Udev' Or use following command.
-```bash
-sudo chmod 777 /dev/ttyUSB0
-```
 
 ### Note
 In Rviz, the fixed frame and the topics for Point Cloud are as follows:
@@ -88,6 +90,7 @@ make
 ##### WINDOW
 Unlike Linux, you have to check 'CMake' and 'Boost' libraries. Not installed yet, please visit below websites.
 > https://cmake.org/download/
+> 
 > https://www.boost.org/users/download/
 
 All set-up prepared, Change Directory to 'cyglidar_d1/sdk' 
@@ -117,3 +120,4 @@ This is an error caused by the generation of debug key values, but there is no p
 <h1 align="left">
   <img src="screenshots/kernalbase_exception.png" width="800"/>
 </h1>
+
