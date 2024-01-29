@@ -127,7 +127,7 @@ void Topic3D::updateColorConfig(uint8_t _color_mode, std::string &_notice)
     color_mode = _color_mode;
 
     // Call the following function so as to store colors to draw 3D data
-    initColorMap(color_mode);
+    initColorMap();
 
     if (color_mode == ROS_Const::MODE_HUE)
     {
@@ -146,7 +146,7 @@ void Topic3D::updateColorConfig(uint8_t _color_mode, std::string &_notice)
     color_gap = D1_Const::DISTANCE_MAX_VALUE_3D / total_color_number;
 }
 
-void Topic3D::initColorMap(uint8_t color_mode)
+void Topic3D::initColorMap()
 {
 	if (color_mode == ROS_Const::MODE_HUE)
 	{

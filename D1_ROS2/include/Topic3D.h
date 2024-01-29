@@ -31,7 +31,7 @@ class Topic3D
         void updateColorConfig(uint8_t _color_mode, std::string &_notice);
 
     private:
-		void initColorMap(uint8_t color_mode);
+		void initColorMap();
 
         rclcpp::Publisher<Image>::SharedPtr       publisher_image;
         rclcpp::Publisher<PointCloud2>::SharedPtr publisher_point_3d;
