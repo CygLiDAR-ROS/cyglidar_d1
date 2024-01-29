@@ -1,5 +1,4 @@
-#ifndef __D1_3D_TOPIC_H
-#define __D1_3D_TOPIC_H
+#pragma once
 
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
@@ -8,9 +7,9 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/point_cloud.h>
 
-#include "d_series_constant.h"
-#include "cyglidar_driver.h"
-#include "point_cloud_maker.h"
+#include "CYG_Constant.h"
+#include "CYG_Driver.h"
+#include "CYG_Distortion.h"
 
 using pcl_XYZRGBA = pcl::PointCloud<pcl::PointXYZRGBA>;
 using namespace Constant_D1;
@@ -23,19 +22,24 @@ class Topic3D
         void mappingPointCloud3D(uint16_t* _distance_buffer_3d);
 
         void assignPCL3D(const std::string &_frame_id);
-        void publishPoint3D();
+        void publishPoint3D(uint16_t* _distance_buffer_3d);
 
         void assignImage(const std::string &_frame_id);
         void publishScanImage(uint16_t* _distance_buffer_3d);
 
     private:
+        void initColorMap();
+
         ros::Publisher publisher_image;
         ros::Publisher publisher_point_3d;
 
-        std::shared_ptr<PointCloudMaker>          pointcloud_maker;
+        std::shared_ptr<CYG_Distortion>           cyg_distortion;
         std::shared_ptr<sensor_msgs::PointCloud2> message_point_cloud_3d;
-        std::shared_ptr<sensor_msgs::Image>       message_image;        
+        std::shared_ptr<sensor_msgs::Image>       message_image;
         std::shared_ptr<pcl_XYZRGBA>              pcl_3d;
+
+        std::vector<ColorCode_t> color_map;
+        uint8_t r_setup, g_setup, b_setup;
 
         uint16_t  buffer_index;
         uint16_t  raw_distance;
@@ -45,12 +49,7 @@ class Topic3D
         uint32_t  rgb_setup;
 
         float color_gap;
-        float camera_coordinate_x, camera_coordinate_y, camera_coordinate_z;
-        float param_x[Constant_D1::Sensor::numPixel];
-        float param_y[Constant_D1::Sensor::numPixel];
-        float param_z[Constant_D1::Sensor::numPixel];
+        float real_world_coordinate_x, real_world_coordinate_y, real_world_coordinate_z;
 
         const uint16_t BAD_POINT = 0;
 };
-
-#endif
