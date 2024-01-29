@@ -6,7 +6,6 @@
 #include "CYG_SerialUart.h"
 #include "CYG_Driver.h"
 #include "CYG_Constant.h"
-#include "CYG_Distortion.h"
 #include "Topic2D.h"
 #include "Topic3D.h"
 
@@ -61,6 +60,8 @@ class D1_Node : public rclcpp::Node
         std::future_status status;
 
         std::string mode_notice;
+        bool  info_flag = false;
+
         uint8_t packet_structure[D1_Const::SCAN_MAX_SIZE];
         uint8_t first_total_packet_data[D1_Const::SCAN_MAX_SIZE];
         uint8_t second_total_packet_data[D1_Const::SCAN_MAX_SIZE];
@@ -71,6 +72,5 @@ class D1_Node : public rclcpp::Node
         uint8_t  publish_data_state;
         uint8_t  double_buffer_index;
         uint8_t  parser_return;
-        uint8_t  info_flag;
         uint16_t number_of_data;
 };
