@@ -30,12 +30,10 @@ include_directories(
     ${CYGLIDAR_ROS_PATH}/include
     ${pcl_conversions_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME} ${CYGLIDAR_SDK_PATH}/src/cygparser.c)
-
 link_directories(${PCL_LIBRARY_DIRS})
 
 add_executable(cyglidar_d1_publisher
-    ${CYGLIDAR_ROS_PATH}/cyglidar_publisher.cpp
+    ${CYGLIDAR_ROS_PATH}/D1_Publisher.cpp
     ${CYGLIDAR_ROS_SRC}
     ${CYGLIDAR_SDK_SRC})
 
