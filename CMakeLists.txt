@@ -36,7 +36,7 @@ catkin_package()
 link_directories(${PCL_LIBRARY_DIRS})
 
 add_executable(cyglidar_publisher
-    ${CYGLIDAR_ROS_PATH}/cyglidar_publisher.cpp
+    ${CYGLIDAR_ROS_PATH}/D1_Publisher.cpp
     ${CYGLIDAR_SDK_SRC}
     ${CYGLIDAR_ROS_SRC})
 
