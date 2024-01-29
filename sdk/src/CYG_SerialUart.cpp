@@ -58,15 +58,15 @@ void CYG_SerialUart::requestRunMode(const uint8_t _run_mode, std::string &_notic
 
     switch (_run_mode)
     {
-        case eRunMode::kMode2D:
+        case ROS_Const::MODE_2D:
             payload_buffer.push_back(D1_Const::SEND_DEPTH_2D);
             _notice = "RUN 2D MODE";
             break;
-        case eRunMode::kMode3D:
+        case ROS_Const::MODE_3D:
             payload_buffer.push_back(D1_Const::SEND_DEPTH_3D);
             _notice = "RUN 3D MODE";
             break;
-        case eRunMode::kModeDual:
+        case ROS_Const::MODE_DUAL:
             payload_buffer.push_back(D1_Const::SEND_DEPTH_DUAL);
             _notice = "RUN DUAL MODE";
             break;
