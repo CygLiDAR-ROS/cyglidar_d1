@@ -45,7 +45,7 @@ void D1_Node::connectBoostSerial()
 {
     try
     {
-        serial_port->openSerial(port_number, baud_rate_mode);
+        serial_port->openSerialPort(port_number, baud_rate_mode);
 
         requestPacketData();
     }
@@ -57,7 +57,7 @@ void D1_Node::connectBoostSerial()
 
 void D1_Node::disconnectBoostSerial()
 {
-    serial_port->closeSerial();
+    serial_port->closeSerialPort();
     ROS_ERROR("[PACKET REQUEST] STOP");
 }
 
@@ -67,7 +67,7 @@ void D1_Node::loopCygParser()
 
     for (uint16_t i = 0; i < number_of_data; i++)
     {
-        parser_return = cyg_parser->CygParser(received_buffer[double_buffer_index].packet_data, packet_structure[i]);
+        parser_return = cyg_driver->CygParser(received_buffer[double_buffer_index].packet_data, packet_structure[i]);
 
         if(parser_return == D1_Const::CHECKSUM_PASSED)
         {

@@ -12,11 +12,13 @@
 #include "CYG_Distortion.h"
 
 using pcl_XYZRGBA = pcl::PointCloud<pcl::PointXYZRGBA>;
-using namespace Constant_D1;
 
 class Topic3D
 {
     public:
+        Topic3D();
+        virtual ~Topic3D();
+
         void initPublisher(ros::Publisher _publisher_image, ros::Publisher _publisher_point_3d);
 
         void mappingPointCloud3D(uint16_t* _distance_buffer_3d);
