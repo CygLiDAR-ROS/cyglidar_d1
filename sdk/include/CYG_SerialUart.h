@@ -5,7 +5,6 @@
 #include <iostream>
 #include <vector>
 
-#include "CYG_Parser.h"
 #include "CYG_Constant.h"
 
 class CYG_SerialUart
