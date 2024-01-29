@@ -148,6 +148,9 @@ void Topic3D::updateColorConfig(uint8_t _color_mode, std::string &_notice)
 
 void Topic3D::initColorMap()
 {
+    r_setup = 0;
+    g_setup = 0;
+
 	if (color_mode == ROS_Const::MODE_HUE)
 	{
 		color_array = 5;
