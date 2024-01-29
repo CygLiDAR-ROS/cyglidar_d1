@@ -10,15 +10,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(CYGLIDAR_SDK_PATH "./sdk/")
-FILE(GLOB CYGLIDAR_D_SRC
-    "${CYGLIDAR_SDK_PATH}/src/*.cpp"
-    "${CYGLIDAR_SDK_PATH}/src/*.c"
-)
+FILE(GLOB CYGLIDAR_SDK_SRC
+    "${CYGLIDAR_SDK_PATH}/src/*.cpp")
 
 set(CYGLIDAR_ROS_PATH "./D1_ROS2/")
 FILE(GLOB CYGLIDAR_ROS_SRC
-    "${CYGLIDAR_ROS_PATH}/src/*.cpp"
-)
+    "${CYGLIDAR_ROS_PATH}/src/*.cpp")
 
 find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -31,8 +28,7 @@ find_package(PCL REQUIRED)
 include_directories(
     ${CYGLIDAR_SDK_PATH}/include
     ${CYGLIDAR_ROS_PATH}/include
-    ${pcl_conversions_INCLUDE_DIRS}
-)
+    ${pcl_conversions_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME} ${CYGLIDAR_SDK_PATH}/src/cygparser.c)
 
@@ -41,8 +37,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_executable(cyglidar_d1_publisher
     ${CYGLIDAR_ROS_PATH}/cyglidar_publisher.cpp
     ${CYGLIDAR_ROS_SRC}
-    ${CYGLIDAR_D_SRC}
-)
+    ${CYGLIDAR_SDK_SRC})
 
 ament_target_dependencies(cyglidar_d1_publisher
     rclcpp
@@ -53,15 +48,13 @@ ament_target_dependencies(cyglidar_d1_publisher
 )
 
 install(TARGETS cyglidar_d1_publisher
-    DESTINATION lib/${PROJECT_NAME}
-)
+    DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY ${CYGLIDAR_SDK_PATH}/include ${CYGLIDAR_ROS_PATH}/include
     DESTINATION include)
 
 install(DIRECTORY launch rviz scripts
-    DESTINATION share/${PROJECT_NAME}
-)
+    DESTINATION share/${PROJECT_NAME})
 
 ament_export_include_directories(include)
 ament_export_dependencies(std_msgs)
