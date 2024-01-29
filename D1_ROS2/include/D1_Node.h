@@ -41,7 +41,6 @@ class D1_Node : public rclcpp::Node
         Topic3D*        topic_3d;
         CYG_SerialUart* serial_port;
         CYG_Driver*     cyg_driver;
-        CYG_Parser*     cyg_parser;
 
         rclcpp::Time start_time_scan_2d;
 
